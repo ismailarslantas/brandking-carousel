@@ -1,0 +1,23 @@
+{
+  "brand": {
+    "name": "BRANDKING",
+    "handle": "DEMO / NOT A PROFILE",
+    "primary": "#183B32",
+    "accent": "#D6F75A",
+    "dark": "#111A17",
+    "light": "#F6F7F2",
+    "warm": "#EDE5D3",
+    "font": "assets/fonts/Figtree.ttf",
+    "evidence": "Fictional demo identity. No Instagram profile was analyzed."
+  },
+  "caption": "Give every swipe a reason to exist.\n\nStart with one reader problem, turn it into a useful takeaway, and use your brand identity to connect the sequence. Save this checklist for your next content brief.\n\n#CarouselDesign #BrandIdentity #ContentDesign",
+  "sources": [],
+  "slides": [
+    {"layout":"cover","rotation":"solid","eyebrow":"CONTENT DESIGN","headline":"Make every swipe count.","alt":"Dark green cover with ivory headline and three overlapping editorial cards.","visual_prompt":"A restrained three-card editorial metaphor; ivory, lime and warm neutral. No generated lettering."},
+    {"layout":"statement","rotation":"light","eyebrow":"01 / THE PROBLEM","headline":"One slide. One useful idea.","body":"A crowded slide asks readers to do the editing. Give each idea room.","alt":"Ivory editorial slide explaining why each slide should carry one idea.","visual_prompt":"Open ivory field, left-aligned headline and generous negative space. Short lime rule."},
+    {"layout":"split","rotation":"warm","eyebrow":"02 / THE SHIFT","headline":"Turn attention into understanding.","items":["A vague promise","A practical next step"],"alt":"Two comparison panels contrast a vague promise with a practical next step.","visual_prompt":"Two side-by-side editorial panels, lime and ivory; compare two ideas without fake metrics."},
+    {"layout":"steps","rotation":"dark","eyebrow":"03 / THE METHOD","headline":"Build a clear sequence.","items":["Name the problem","Explain the insight","Offer one action"],"alt":"Three numbered rows present a problem, an insight and an action.","visual_prompt":"Three clean numbered horizontal cards on charcoal; identical alignment and ample gutters."},
+    {"layout":"checklist","rotation":"light","eyebrow":"04 / BEFORE YOU POST","headline":"Check the essentials.","items":["Readable at phone size","Consistent brand identity","A takeaway worth saving"],"alt":"A three-item pre-publication checklist on an ivory background.","visual_prompt":"Minimal checklist with three dark rounded rows. Keep all content clear and readable."},
+    {"layout":"closing","rotation":"solid","eyebrow":"YOUR NEXT CAROUSEL","headline":"Start with your reader.","body":"Choose one problem. Leave people with something they can use.","cta":"Save your next-brief checklist","alt":"Closing green slide with a practical summary and a lime save prompt.","visual_prompt":"Quiet green closing composition with a single lime action panel and fixed dark footer."}
+  ]
+}
