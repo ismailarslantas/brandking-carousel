@@ -1,6 +1,6 @@
 # GitHub banner art direction
 
-Format: landscape README banner. Creative direction: Görsel Post & Carousel Direktörü plugin. Rendering: built-in image-generation tool; not part of the free repository runtime.
+Format: landscape README banner. Creative direction: Visual Post & Carousel Director plugin. Rendering: built-in image-generation tool; not part of the free repository runtime.
 
 ## Copy
 

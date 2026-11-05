@@ -6,3 +6,7 @@ private/
 .env
 .env.*
 *.zip
+# Local source material and superseded planning drafts are not publication files.
+references/
+WORKFLOW.md
+CLAUDE-ILE-BASLAT.md

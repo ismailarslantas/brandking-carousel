@@ -96,6 +96,6 @@ CI runs this suite on `ubuntu-latest`, `windows-latest` and `macos-latest`. Cros
 
 ## Creative direction and artwork
 
-The English creative guides adapt the user-provided Visual Post & Carousel Director materials. The GitHub banner was art-directed using the **Görsel Post & Carousel Direktörü** plugin and rendered with the built-in image-generation tool. The repository workflow does not depend on that tool. Its concept, copy, placement and production prompt are in [the banner brief](docs/GITHUB-ARTWORK.md).
+The English creative guides adapt the user-provided Visual Post & Carousel Director materials. The GitHub banner was art-directed using the **Visual Post & Carousel Director** plugin and rendered with the built-in image-generation tool. The repository workflow does not depend on that tool. Its concept, copy, placement and production prompt are in [the banner brief](docs/GITHUB-ARTWORK.md).
 
 Code: MIT. Bundled Figtree font: SIL Open Font License; see `assets/fonts/OFL.txt`. No third-party client brand assets are bundled.
