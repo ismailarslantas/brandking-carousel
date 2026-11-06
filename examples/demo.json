@@ -1,23 +1,16 @@
 {
-  "brand": {
-    "name": "BRANDKING",
-    "handle": "DEMO / NOT A PROFILE",
-    "primary": "#183B32",
-    "accent": "#D6F75A",
-    "dark": "#111A17",
-    "light": "#F6F7F2",
-    "warm": "#EDE5D3",
-    "font": "assets/fonts/Figtree.ttf",
-    "evidence": "Fictional demo identity. No Instagram profile was analyzed."
-  },
-  "caption": "Give every swipe a reason to exist.\n\nStart with one reader problem, turn it into a useful takeaway, and use your brand identity to connect the sequence. Save this checklist for your next content brief.\n\n#CarouselDesign #BrandIdentity #ContentDesign",
+  "brand": "brands/brandking",
+  "promise": {"text": "Each swipe gets a clear job, and the reader leaves with a checklist.", "paid_on": 5},
+  "meta": {"hook_type": "command", "format": "education", "hypothesis": "A plain command cover earns more saves than a question cover."},
+  "cover_options": ["Make every swipe count.", "Why readers stop at slide two", "Your carousel has too many ideas"],
+  "caption": "Most carousels lose people on one crowded slide.\n\nGive each slide a single job, make the next swipe worth it, and end on something the reader can use. Save this for your next brief.\n\n#CarouselDesign #ContentDesign #BrandIdentity",
   "sources": [],
   "slides": [
-    {"layout":"cover","rotation":"solid","eyebrow":"CONTENT DESIGN","headline":"Make every swipe count.","alt":"Dark green cover with ivory headline and three overlapping editorial cards.","visual_prompt":"A restrained three-card editorial metaphor; ivory, lime and warm neutral. No generated lettering."},
-    {"layout":"statement","rotation":"light","eyebrow":"01 / THE PROBLEM","headline":"One slide. One useful idea.","body":"A crowded slide asks readers to do the editing. Give each idea room.","alt":"Ivory editorial slide explaining why each slide should carry one idea.","visual_prompt":"Open ivory field, left-aligned headline and generous negative space. Short lime rule."},
-    {"layout":"split","rotation":"warm","eyebrow":"02 / THE SHIFT","headline":"Turn attention into understanding.","items":["A vague promise","A practical next step"],"alt":"Two comparison panels contrast a vague promise with a practical next step.","visual_prompt":"Two side-by-side editorial panels, lime and ivory; compare two ideas without fake metrics."},
-    {"layout":"steps","rotation":"dark","eyebrow":"03 / THE METHOD","headline":"Build a clear sequence.","items":["Name the problem","Explain the insight","Offer one action"],"alt":"Three numbered rows present a problem, an insight and an action.","visual_prompt":"Three clean numbered horizontal cards on charcoal; identical alignment and ample gutters."},
-    {"layout":"checklist","rotation":"light","eyebrow":"04 / BEFORE YOU POST","headline":"Check the essentials.","items":["Readable at phone size","Consistent brand identity","A takeaway worth saving"],"alt":"A three-item pre-publication checklist on an ivory background.","visual_prompt":"Minimal checklist with three dark rounded rows. Keep all content clear and readable."},
-    {"layout":"closing","rotation":"solid","eyebrow":"YOUR NEXT CAROUSEL","headline":"Start with your reader.","body":"Choose one problem. Leave people with something they can use.","cta":"Save your next-brief checklist","alt":"Closing green slide with a practical summary and a lime save prompt.","visual_prompt":"Quiet green closing composition with a single lime action panel and fixed dark footer."}
+    {"layout": "cover", "rotation": "solid", "eyebrow": "CONTENT DESIGN", "headline": "Make every swipe count.", "emphasis": "swipe", "alt": "Green cover with the headline Make every swipe count above three overlapping cards.", "visual_prompt": "Three overlapping editorial cards in lime, ivory and warm neutral. Composed by the engine."},
+    {"layout": "statement", "rotation": "light", "eyebrow": "THE PROBLEM", "headline": "One slide. One useful idea.", "body": "A crowded slide asks readers to do the editing. Give each idea room.", "alt": "Ivory slide explaining that a crowded slide makes the reader do the editing.", "visual_prompt": "Open ivory field, left-aligned headline, generous negative space."},
+    {"layout": "versus", "rotation": "warm", "eyebrow": "THE SHIFT", "headline": "Say what changes.", "left_label": "Vague", "right_label": "Useful", "items": ["Post more often | Post one clear idea", "Boost engagement | Earn a save", "Add value | Teach one step"], "alt": "Comparison table contrasting vague advice such as post more often with useful advice such as post one clear idea.", "visual_prompt": "Two-column comparison in the brand palette."},
+    {"layout": "timeline", "rotation": "dark", "eyebrow": "THE METHOD", "headline": "Build a clear sequence.", "items": ["Name the reader's problem", "Explain why it happens", "Show one thing to do", "Hand over something to keep"], "alt": "Timeline of four points: name the problem, explain why, show one action, hand over something to keep.", "visual_prompt": "Vertical thread with four nodes on charcoal."},
+    {"layout": "checklist", "rotation": "light", "eyebrow": "BEFORE YOU POST", "headline": "Check the essentials.", "items": ["Readable at phone size", "Same identity on every slide", "A takeaway worth saving"], "alt": "Three-item checklist: readable at phone size, same identity on every slide, a takeaway worth saving.", "visual_prompt": "Minimal ticked rows on ivory."},
+    {"layout": "closing", "rotation": "solid", "eyebrow": "YOUR NEXT CAROUSEL", "headline": "Start with your reader.", "body": "Choose one problem. Leave people with something they can use.", "cta": "Save this for your next brief", "alt": "Closing green slide with a short summary and a lime panel asking the reader to save the post.", "visual_prompt": "Quiet green closing composition with one lime action panel."}
   ]
 }

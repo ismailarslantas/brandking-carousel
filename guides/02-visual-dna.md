@@ -12,7 +12,7 @@ A: centered logo for products. B: logo left/contact right for services. C: two-b
 
 Sans: geometric or humanist; approachable, energetic, useful for technology, education, food and services. Serif: editorial prestige for luxury, hospitality, art and premium services; sans supporting text is valid. Hybrid: 1–3 script words above condensed capitals; not on the same line, with only one line tilted.
 
-Reference scale: eyebrow 34–44 px; main headings 76–130; oversized type 160–320; body 42–56; cards 30–46; CTA 36–46; numeric highlights 90–160; footer 24–28. Keep the hierarchy stable. The initial renderer uses a narrower fixed subset; expand layouts deliberately rather than forcing unsupported sizes.
+Reference scale: eyebrow 34–44 px; main headings 76–130; oversized type 160–320; body 42–56; cards 30–46; CTA 36–46; numeric highlights 90–160; footer 24–28. Keep the hierarchy stable. The engine uses a narrower set through its houses; expand layouts deliberately rather than forcing unsupported sizes.
 
 Use two weights for hierarchy, tight but readable headline spacing and a single emphasized word or phrase. Huge capitals can tilt; small light text should not. Preserve punctuation and language-specific casing. Never guess a font family with certainty from a screenshot.
 
@@ -32,7 +32,7 @@ Use a dominant field, a single accent and readable text, roughly 70/20/10. Neutr
 | R8 | Quiet tone-on-tone pattern |
 | R9 | Warm neutral field |
 
-Normally use at least four roles in a series and avoid adjacent repetition. This does not mean inventing four additional brand colors. Strict brand restrictions override generic rotation targets; record the exception. The executable renderer currently implements solid/light/dark/warm, with real photo inserts for supported layouts.
+Normally use at least four roles in a series and avoid adjacent repetition. This does not mean inventing four additional brand colors. Strict brand restrictions override generic rotation targets; record the exception. The engine implements solid, light, dark and warm, plus full pictures through the `photo` layout.
 
 ## Photography and texture
 

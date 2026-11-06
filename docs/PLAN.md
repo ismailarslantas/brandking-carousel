@@ -1,32 +1,91 @@
-# Plan format and supported capabilities
+# Plan format
 
-Use `examples/demo.json` as the complete editable example. Paths are relative to the repository root, even when a plan is in `private/`.
+A plan is one JSON file that describes a whole carousel. `examples/demo.json` is a complete example, and `schemas/plan.schema.json` gives editors autocomplete. Paths are relative to the repository root, even when the plan lives in `private/`.
 
-## Brand
+## Top level
 
-Required fields: `name`, `primary`, `accent`, `dark`, `light`, `warm`. Colors use six-digit HEX. Optional fields: `handle`, `font`, `title_font`, `logo`, and `evidence`. The default font is bundled Figtree. A separate title font supports a serif heading with a sans body; user-provided fonts need suitable glyph coverage and redistribution rights if included in a delivery. The renderer does not download fonts.
+| Field | Required | Meaning |
+| --- | --- | --- |
+| `brand` | yes | A kit path such as `"brands/brandking"`, or an inline object |
+| `caption` | yes | Post caption, up to 2,200 characters |
+| `slides` | yes | 3-20 slides. Lint suggests 5-10 |
+| `promise` | recommended | `{"text": "...", "paid_on": 5}`: what the cover promises and which slide pays it off |
+| `meta` | recommended | `hook_type`, `format`, `hypothesis` for the ledger |
+| `cover_options` | recommended | At least three headlines for `brandking covers` |
+| `sources` | when claims exist | A list of sources that covers the whole plan |
+| `product_variant_exception` | no | `true` allows repeated layouts and palette roles for a deliberate product range |
+
+## Brand kit
+
+A kit is a folder holding `brand.json`. Create one with `brandking brand init`.
+
+| Field | Meaning |
+| --- | --- |
+| `name` | Required. Used in the footer when no logo is set |
+| `primary`, `accent`, `dark`, `light`, `warm` | Required six-digit HEX colors |
+| `house` | `sovereign`, `editorial` or `poster` |
+| `font`, `title_font` | Optional font files that override the house. Check you may redistribute them |
+| `logo` | Optional image for the footer |
+| `handle` | Optional text at the right of the footer |
+| `footer` | `split` (logo left, handle right) or `center` |
+| `thread` | `false` turns off the Crown Thread |
+| `visual_style` | Sentence used in the image prompt pack |
+| `voice` | `tone`, `banned_words`, `allowed_words`, `max_hashtags` |
+| `evidence` | Where the tokens came from |
 
 ## Slides
 
-Each slide requires `layout`, `rotation`, `headline`, `alt`, and `visual_prompt`. Optional fields: `eyebrow`, `body`, `items`, `image`, and `cta`.
+Every slide needs `layout`, `rotation`, `headline`, `alt` and `visual_prompt`. `rotation` is the palette role: `solid`, `light`, `dark` or `warm`.
 
-| Layout | Content | Visual behavior |
+Optional on any slide: `eyebrow`, `emphasis` (words from the headline to highlight), `source`.
+
+| Layout | Extra fields | Notes |
 | --- | --- | --- |
-| cover | Headline; optional image | Overlapping graphic cards or a full, uncropped product photo |
-| statement | Headline and body, or an image | Open editorial composition |
-| split | Headline, optional short body, up to two items | Side-by-side comparison panels |
-| steps | Headline, optional short body, up to three items | Numbered horizontal cards |
-| checklist | Headline, optional short body, up to three items | Compact review checklist |
-| closing | Headline, body, optional CTA | Summary and one action panel |
+| `cover` | `image` | Swipe card graphic, or an uncropped product image. No body |
+| `statement` | `body` or `image` | Open editorial composition |
+| `split` | `items` (2), `body` | Two panels |
+| `steps` | `items` (3), `body` | Numbered rows. Each item fits one line |
+| `checklist` | `items` (3), `body` | Ticked rows |
+| `timeline` | `items` (4) | Connected points |
+| `versus` | `left_label`, `right_label`, `items` (3) | Items are written `"left \| right"` |
+| `myth` | `myth`, `fact` | Struck-through belief and highlighted correction |
+| `stat` | `value`, `source`, `body` | Source is required and printed on the slide |
+| `quote` | `attribution`, `source` | The headline holds a real quote, up to 18 words |
+| `bento` | `items` (4) | Cells of varied size |
+| `photo` | `background`, `focus_y`, `panel`, `body` | Full picture above the thread. `focus_y` from 0 to 1 picks which part survives the crop (0 keeps the top). `panel: false` sets type directly on it |
+| `closing` | `body`, `cta` | Summary and the one call to action |
 
-Rotations: `solid` uses primary; `light` uses light; `dark` uses dark; `warm` uses warm. These are four roles within a brand palette, not four unrelated brand colors. Colors can be changed to fit the user's actual identity. A `product_variant_exception: true` top-level field explicitly permits repeated composition and palette roles for a product family. Normal runs require four roles, three layouts and no adjacent repetition.
+## Word limits
 
-Use at most seven words in a headline. A cover has at most eight editorial words total; other slides 25. Footer and page counter are excluded. The renderer rejects overflow instead of silently reducing type size. Item cards need short text to fit one line; split panels support wrapped text. The `body` field is not supported on a cover. Images are supported in cover or statement, with no body or CTA on image statements to protect the image zone. Other layouts reject an image.
+The cover holds 8 words. Other slides hold 25, or 30 for `versus` and `quote`. Headlines hold 7, or 18 for `quote`. The footer and page counter do not count. Headlines step down a fixed size ladder when needed, then ask for shorter copy. Nothing shrinks silently.
 
-Top-level `caption` is required. `sources` is a list of source descriptions/URLs for factual claims. The renderer stores sources but does not fact-check them. `visual_prompt` describes the requested visual, and is exported as a production handoff; it does not call an image generation API. The available layouts are a starting library, not an implementation of every conceptual composition in the creative guides.
+## What each stage checks
 
-## Outputs and limitations
+**Structure (`plan.py`), always blocking.** Field types, layout capabilities, word limits, glyph coverage for every character, asset paths inside the project, adjacent slide variety, four palette roles and three layouts per deck.
 
-PNG is the authoritative 1080×1350 export. SVG retains editable text and embeds fonts and images; font rendering can differ in external SVG editors. The delivery also includes a portable Python recipe with the plan and referenced assets. Only include fonts/assets whose licenses permit sharing. Bundled Figtree includes its OFL license.
+**Copy lint (`lint.py`).**
 
-QA measures text bounds, glyph coverage, word counts, solid-color contrast and sequence rules. It does not infer persuasion, guarantee reach, inspect photo contrast or verify factual claims. Visual review remains a separate human/assistant step. No screenshot scraping, Instagram login, automated posting or paid image service is included.
+| Blocks delivery | Warns |
+| --- | --- |
+| `unsourced_number`, `hype_claim`, `brand_voice`, `placeholder`, `one_cta` (more than one), `promise_payoff` (invalid slide), `caption_length` | `ai_tell`, `self_praise`, `comment_bait`, `generic_cover`, `cover_about_brand`, `slide_two`, `cta_verb`, `alt_text`, `long_sentence`, `em_dash`, `caption_opening`, `hashtags`, `text_in_plate`, `deck_length`, `promise_payoff` (missing) |
+
+**Pixel audit (`audit.py`), on the rendered image.**
+
+| Check | What is measured |
+| --- | --- |
+| `measured_contrast` | Each line's color against the real pixels behind its glyphs (5th percentile). Needs 3:1 for large type, 4.5:1 otherwise |
+| `safe_area` | Text bounds inside the 80 px margin |
+| `footer_collision` | Content text above the footer |
+| `phone_legibility` | Type at or above the size floor, 28 px, or 24 px in the footer |
+| `grid_crop` | Cover text survives the 3:4 profile grid crop |
+| `text_collision` | Text blocks do not overlap |
+| `cover_scale` | Cover headline strong enough for a thumbnail (warning) |
+| `density` | Share of the slide covered by text (warning) |
+| `thread_seams` | The Crown Thread meets within 3 px on both sides of each seam |
+| `visual_rhythm` | Adjacent slides differ at thumbnail size (warning) |
+
+## What is not checked
+
+Nothing here judges persuasion, taste or whether a claim is true. `unsourced_number` confirms a source was named, not that it says what you claim. It only detects common number patterns, so a claim in words can pass. Reading these limits is part of the job: visual review stays `pending` until `brandking signoff` records a real review.
+
+The engine renders one size, 1080 x 1350. It does not log in to Instagram, read profiles, post, or call any image service. PNG is the authoritative export. SVG text stays editable, though fonts can render differently in other editors. Exact pixels can vary between operating systems.

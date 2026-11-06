@@ -1,0 +1,25 @@
+{
+  "brand": {
+    "name": "Atelier Noor",
+    "handle": "fictional demo brand",
+    "house": "editorial",
+    "primary": "#5B2333",
+    "accent": "#E9B872",
+    "dark": "#2A1218",
+    "light": "#FBF6EF",
+    "warm": "#EADBC8",
+    "footer": "center",
+    "evidence": "Fictional demo identity. No real brand or profile was analyzed."
+  },
+  "promise": {"text": "Three questions show whether a ceramic piece was made to last.", "paid_on": 3},
+  "meta": {"hook_type": "contrast", "format": "education", "hypothesis": "Quiet serif covers earn saves in craft audiences."},
+  "caption": "Good glaze is easy to photograph and hard to fake.\n\nBefore you buy a handmade cup, turn it over. These three questions take a minute and tell you more than the listing does.\n\n#Ceramics #Handmade",
+  "sources": [],
+  "slides": [
+    {"layout": "cover", "rotation": "solid", "eyebrow": "THE BUYING NOTES", "headline": "Turn the cup over first.", "alt": "Burgundy cover with the serif headline Turn the cup over first above three overlapping cards.", "visual_prompt": "Three overlapping cards in sand and cream. Composed by the engine."},
+    {"layout": "quote", "rotation": "light", "eyebrow": "A NOTE FROM THE STUDIO", "headline": "The foot of a cup tells you how carefully the rest was made.", "attribution": "Studio notes, Atelier Noor", "source": "Fictional demo copy", "alt": "Cream slide with a quote saying the foot of a cup shows how carefully the rest was made.", "visual_prompt": "Serif pull quote with a thin vertical sand rule."},
+    {"layout": "checklist", "rotation": "warm", "eyebrow": "THREE QUESTIONS", "headline": "Ask these before buying.", "items": ["Is the foot smooth?", "Does the glaze pool evenly?", "Does it sit flat?"], "alt": "Three questions to ask: is the foot smooth, does the glaze pool evenly, does it sit flat.", "visual_prompt": "Ticked rows on warm sand."},
+    {"layout": "myth", "rotation": "dark", "eyebrow": "A COMMON MISTAKE", "headline": "Heavy is not sturdy.", "myth": "A thick wall means a strong cup", "fact": "Even walls matter more than thick ones", "alt": "Dark slide correcting the myth that thick walls mean strength: even walls matter more.", "visual_prompt": "Struck-through myth above a sand fact panel."},
+    {"layout": "closing", "rotation": "solid", "eyebrow": "NEXT TIME", "headline": "Buy the cup you can flip.", "body": "If a listing hides the foot, ask for one more photo.", "cta": "Save this for your next market", "alt": "Burgundy closing slide asking the reader to request a photo of the foot and save the post.", "visual_prompt": "Calm burgundy close with one sand action panel."}
+  ]
+}

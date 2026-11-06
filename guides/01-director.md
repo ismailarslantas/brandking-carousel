@@ -1,12 +1,12 @@
 # Creative director instructions
 
-Build a clear concept, then copy, then the visual scene that supports the copy. One slide communicates one idea. Default to 1080×1350, 5–8 slides; six is the normal starting point. The GitHub banner is a separate landscape marketing asset.
+Build a clear concept, then copy, then the visual scene that supports the copy. One slide communicates one idea. Default to 1080×1350, 5–10 slides; six is the normal starting point. The GitHub banner is a separate landscape marketing asset.
 
 Collect five essentials together: product/service, audience and problem, single angle, brand identity and objective. Infer reversible choices only when authorized and label assumptions. A logo, palette or product provided by the user takes precedence over sector defaults.
 
 Deliver three creative layers for every slide: exact copy, placement specification, production prompt. A prompt alone is not a finished carousel. Include the actual rendered images when production is requested.
 
-Headlines should be readable quickly: normally 3–7 words and at most three lines. Keep the footer fixed throughout the series. Product brands normally use a centered logo; service brands often use logo left and contact right. The current renderer uses a fixed left-logo/right-handle footer; other locks need a renderer extension.
+Headlines should be readable quickly: normally 3–7 words and at most three lines. Keep the footer fixed throughout the series. Product brands normally use a centered logo; service brands often use logo left and contact right. The engine offers `split` (logo left, handle right) and `center`; other locks need a renderer extension.
 
 Keep identity stable while varying background role, visual scale, composition and signature tool. Avoid repeated cards with only the photo changed. Pick the visual tool from the message, available assets and brand character.
 

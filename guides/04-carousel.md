@@ -2,7 +2,7 @@
 
 ## Carousel
 
-Use 5–8 slides at the same 1080×1350 size. Six is a useful default. Maintain footer, accent identity and typography while varying layout and background role. A full deck of identical white cards loses rhythm.
+Use 5–10 slides at the same 1080×1350 size. Six is a useful default. The engine accepts 3–20, and lint flags anything outside 5–10. Maintain footer, accent identity and typography while varying layout and background role. A full deck of identical white cards loses rhythm.
 
 1. Cover: one specific promise, understandable alone; add a progress cue.
 2. Context: a recognizable reader problem.
@@ -13,9 +13,9 @@ Use 5–8 slides at the same 1080×1350 size. Six is a useful default. Maintain 
 
 Adapt the length to the topic. Other valid structures: product introduction, misconception-to-practice education, objection handling, evidence-backed case study, honest campaign terms, or a location/project tour. Do not force unsupported numbers into a benefit slide.
 
-Create three cover options, choose deliberately, and make the promise match the body. A strong cover is an editorial priority, not a guarantee of reach. Page counters or progress markers help make the sequence legible; do not invent performance statistics about them.
+Create three cover options, compare them with `brandking covers`, choose deliberately, and make the promise match the body. A strong cover is an editorial priority, not a guarantee of reach. Page counters or progress markers help make the sequence legible; do not invent performance statistics about them.
 
-Continuity can come from a fixed strip, progress dots, related tones, a recurring prop or intentional edge continuation. Do not let a continuation device obstruct content. Current renderer uses page counters and a fixed footer.
+Continuity can come from a fixed strip, progress dots, related tones, a recurring prop or intentional edge continuation. Do not let a continuation device obstruct content. The engine uses page counters, a fixed footer and the Crown Thread, one line that crosses every seam and ends in a crown.
 
 Editorial limits: cover eight words, other slides 25; headlines seven. One idea per slide. Put detailed context in the caption rather than shrinking the type.
 
