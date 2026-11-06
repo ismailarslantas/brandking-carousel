@@ -1,0 +1,20 @@
+{
+  "name": "brandking",
+  "interface": {
+    "displayName": "Brandking"
+  },
+  "plugins": [
+    {
+      "name": "brandking",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Creativity"
+    }
+  ]
+}

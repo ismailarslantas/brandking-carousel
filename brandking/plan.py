@@ -5,7 +5,7 @@ import re
 
 from fontTools.ttLib import TTFont
 
-from .core import PlanError, ROOT, asset_path, read_json
+from .core import PlanError, asset_path, read_json, search_paths
 from .styles import HOUSES, house_of
 
 LAYOUTS = {
@@ -26,6 +26,8 @@ LAYOUTS = {
 ROTATIONS = {'solid', 'light', 'dark', 'warm'}
 COLOR_KEYS = ('primary', 'accent', 'dark', 'light', 'warm')
 MIN_SLIDES, MAX_SLIDES = 3, 20
+#: Format: (fewest slides, most slides). A grid is exactly nine posts on a 3 x 3 profile.
+FORMATS = {'carousel': (MIN_SLIDES, MAX_SLIDES), 'post': (1, 1), 'series': (2, 10), 'grid': (9, 9)}
 ITEM_LIMITS = {'split': 2, 'steps': 3, 'checklist': 3, 'timeline': 4, 'versus': 3, 'bento': 4}
 HEADLINE_LIMITS = {'quote': 18}
 WORD_LIMITS = {'versus': 30, 'quote': 30}
@@ -36,13 +38,25 @@ TEXT_FIELDS = ('eyebrow', 'headline', 'body', 'cta', 'myth', 'fact', 'value', 'a
 def resolve_brand(plan):
     """A plan may inline its brand or point at a reusable brand kit directory."""
     brand = plan.get('brand')
+    if brand is None or (isinstance(brand, str) and brand.startswith('@')):
+        # No brand in the plan, or "@memory" or "@slug": use what was saved earlier.
+        from .memory import recall
+        slug = None if brand in (None, '@memory') else brand[1:]
+        saved = recall(slug)
+        if not saved:
+            raise PlanError('No saved brand found. Give the brand details once with: brandking brand remember')
+        return saved['brand']
     if isinstance(brand, str):
-        kit = (ROOT / brand).resolve()
-        if not kit.is_relative_to(ROOT):
+        inside = False
+        for base in search_paths():
+            kit = (base / brand).resolve()
+            if kit.is_relative_to(base):
+                inside = True
+                if (kit / 'brand.json').is_file():
+                    return read_json(kit / 'brand.json')
+        if not inside:
             raise PlanError('Brand kits must be inside the project directory.')
-        if not (kit / 'brand.json').is_file():
-            raise PlanError(f'Brand kit not found: {brand}/brand.json')
-        return read_json(kit / 'brand.json')
+        raise PlanError(f'Brand kit not found: {brand}/brand.json')
     if isinstance(brand, dict):
         return brand
     raise PlanError('brand must be an object or the path of a brand kit.')
@@ -73,7 +87,7 @@ def _check_glyphs(path, text):
         raise PlanError(f'{path.name} has no glyph for {missing}. Remove them or use another font.')
 
 
-def check_slide(slide, n, total, brand, fonts):
+def check_slide(slide, n, total, brand, fonts, fmt='carousel'):
     label = f'Slide {n + 1}'
     if not isinstance(slide, dict):
         raise PlanError(f'{label}: must be an object.')
@@ -89,7 +103,7 @@ def check_slide(slide, n, total, brand, fonts):
     if not 1 <= len(slide['headline'].split()) <= limit:
         raise PlanError(f'{label}: headline needs 1-{limit} words.')
     words = slide_words(slide)
-    budget = 8 if n == 0 else WORD_LIMITS.get(layout, 25)
+    budget = 8 if n == 0 and fmt == 'carousel' else WORD_LIMITS.get(layout, 25)
     if len(words) > budget:
         raise PlanError(f'{label}: {len(words)} words is over the limit of {budget}. Cut copy, do not shrink it.')
     if slide.get('emphasis') and not set(slide['emphasis'].casefold().split()) <= {
@@ -133,6 +147,20 @@ def check_slide(slide, n, total, brand, fonts):
     _check_glyphs(body, slide_text(slide))
 
 
+def _check_grid(slides):
+    """A grid is judged in two dimensions, since neighbours sit beside and below."""
+    for n, slide in enumerate(slides):
+        below, right = n + 3, n + 1 if (n + 1) % 3 else None
+        for other in (right, below):
+            if other is not None and other < 9 and slide['rotation'] == slides[other]['rotation']:
+                raise PlanError(f'Posts {n + 1} and {other + 1} touch in the grid and share a palette role.')
+    if len({s['rotation'] for s in slides}) < 4:
+        raise PlanError('A grid uses at least four palette roles.')
+    for layout in {s['layout'] for s in slides}:
+        if sum(s['layout'] == layout for s in slides) > 2:
+            raise PlanError(f'The {layout} layout appears more than twice in the grid.')
+
+
 def validate(plan):
     """Return (brand, body_font, title_font) or raise PlanError."""
     if not isinstance(plan, dict):
@@ -145,17 +173,27 @@ def validate(plan):
         raise PlanError('brand.name is required.')
     if brand.get('house', 'sovereign') not in HOUSES:
         raise PlanError(f'brand.house must be one of {", ".join(sorted(HOUSES))}.')
-    if not plan.get('caption'):
+    fmt = plan.get('format', 'carousel')
+    if fmt not in FORMATS:
+        raise PlanError(f'format must be one of {", ".join(FORMATS)}.')
+    each_post = fmt in {'series', 'grid'}
+    if not each_post and not plan.get('caption'):
         raise PlanError('caption is required.')
     if brand.get('logo'):
         asset_path(brand['logo'])
     fonts = fonts_for(brand)
     slides = plan.get('slides')
-    if not isinstance(slides, list) or not MIN_SLIDES <= len(slides) <= MAX_SLIDES:
-        raise PlanError(f'A carousel needs {MIN_SLIDES}-{MAX_SLIDES} slides.')
+    fewest, most = FORMATS[fmt]
+    if not isinstance(slides, list) or not fewest <= len(slides) <= most:
+        count = str(fewest) if fewest == most else f'{fewest}-{most}'
+        raise PlanError(f'A {fmt} needs {count} slides.')
     for n, slide in enumerate(slides):
-        check_slide(slide, n, len(slides), brand, fonts)
-    if not plan.get('product_variant_exception', False):
+        check_slide(slide, n, len(slides), brand, fonts, fmt)
+        if each_post and not slide.get('caption'):
+            raise PlanError(f'Slide {n + 1}: each post in a {fmt} needs its own caption.')
+    if fmt == 'grid' and not plan.get('product_variant_exception', False):
+        _check_grid(slides)
+    elif fmt != 'post' and not plan.get('product_variant_exception', False):
         for n in range(1, len(slides)):
             if slides[n]['layout'] == slides[n - 1]['layout'] or slides[n]['rotation'] == slides[n - 1]['rotation']:
                 raise PlanError(f'Slides {n} and {n + 1}: adjacent slides must vary layout and palette role.')

@@ -14,8 +14,9 @@ HEADER_RULE = 185
 class Slide:
     """Everything a layout needs for one slide."""
 
-    def __init__(self, spec, brand, index, total, fonts):
+    def __init__(self, spec, brand, index, total, fonts, sequence=True):
         self.spec, self.brand, self.index, self.total = spec, brand, index, total
+        self.sequence = sequence
         self.house = house_of(brand)
         self.bg = {'solid': brand['primary'], 'light': brand['light'],
                    'dark': brand['dark'], 'warm': brand['warm']}[spec['rotation']]
@@ -54,7 +55,8 @@ class Slide:
 def _header(s):
     c = s.canvas
     c.text(s.spec.get('eyebrow', ''), (LEFT, 100, 820, 160), 30, s.fg, max_lines=1, role='eyebrow')
-    c.text(f'{s.index:02d}/{s.total:02d}', (850, 100, RIGHT, 160), 28, s.fg, max_lines=1, role='counter', align='right')
+    if s.sequence:
+        c.text(f'{s.index:02d}/{s.total:02d}', (850, 100, RIGHT, 160), 28, s.fg, max_lines=1, role='counter', align='right')
     c.rect((LEFT, HEADER_RULE, RIGHT, HEADER_RULE + 3), s.fg)
 
 
@@ -231,13 +233,15 @@ def _photo(s):
         c.rect((64, top, 1016, 1100), s.bg, s.radius)
         c.rect((64, 70, 1016, 150), s.bg, s.radius)
         c.text(spec.get('eyebrow', ''), (96, 92, 820, 142), 28, s.fg, max_lines=1, role='eyebrow')
-        c.text(f'{s.index:02d}/{s.total:02d}', (850, 92, RIGHT, 142), 28, s.fg, max_lines=1, role='counter', align='right')
+        if s.sequence:
+            c.text(f'{s.index:02d}/{s.total:02d}', (850, 92, RIGHT, 142), 28, s.fg, max_lines=1, role='counter', align='right')
         end = s.headline(top + 30, top + 430, scale, max_lines=3)
         c.text(spec.get('body', ''), (LEFT, end + 14, RIGHT, 1090), 36, s.fg, max_lines=3)
         return
     # No panel: type sits directly on the picture and the audit measures it.
     c.text(spec.get('eyebrow', ''), (LEFT, 100, 820, 160), 30, s.fg, max_lines=1, role='eyebrow')
-    c.text(f'{s.index:02d}/{s.total:02d}', (850, 100, RIGHT, 160), 28, s.fg, max_lines=1, role='counter', align='right')
+    if s.sequence:
+        c.text(f'{s.index:02d}/{s.total:02d}', (850, 100, RIGHT, 160), 28, s.fg, max_lines=1, role='counter', align='right')
     end = s.headline(200, 800)
     c.text(spec.get('body', ''), (LEFT, end + 20, RIGHT, 1090), 42, s.fg, max_lines=4)
 
@@ -314,9 +318,9 @@ def _footer(s):
         c.text(handle, (580, 1224, RIGHT, 1272), 24, brand['light'], max_lines=1, role='footer', align='right')
 
 
-def render_slide(spec, brand, index, total, fonts):
+def render_slide(spec, brand, index, total, fonts, sequence=True):
     """Compose one slide. Returns its finished canvas plus what the audit needs."""
-    s = Slide(spec, brand, index, total, fonts)
+    s = Slide(spec, brand, index, total, fonts, sequence)
     if spec['layout'] != 'photo':
         if spec.get('background'):
             s.canvas.cover(asset_path(spec['background']), (0, 0, WIDTH, 1130), spec.get('focus_y', .5))
@@ -327,7 +331,8 @@ def render_slide(spec, brand, index, total, fonts):
         LAYOUT_FUNCTIONS[spec['layout']](s)
     except PlanError as error:
         raise PlanError(f'Slide {index}: {error}') from error
-    thread_color = _thread(s) if brand.get('thread', True) else None
+    # Counters and the thread only make sense when slides are swiped in order.
+    thread_color = _thread(s) if sequence and brand.get('thread', True) else None
     _footer(s)
     s.canvas.finish()
     s.canvas.thread_color = thread_color

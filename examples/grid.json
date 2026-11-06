@@ -1,0 +1,29 @@
+{
+  "format": "grid",
+  "brand": {
+    "demo": true,
+    "name": "North Mill",
+    "handle": "fictional demo brand",
+    "house": "sovereign",
+    "primary": "#23402F",
+    "accent": "#F2B441",
+    "dark": "#16211B",
+    "light": "#FAF7F0",
+    "warm": "#EADFC8",
+    "footer": "center",
+    "evidence": "Fictional demo identity. No real brand or profile was analyzed."
+  },
+  "meta": {"hook_type": "mixed", "format": "grid", "hypothesis": "Mixing teaching posts with product posts keeps the profile from feeling like a catalogue."},
+  "sources": [],
+  "slides": [
+    {"layout": "statement", "rotation": "solid", "eyebrow": "OUR WAY", "headline": "Bread takes its time.", "emphasis": "time", "body": "So we stopped rushing it.", "caption": "We mill in small batches and let the dough decide.\n\nCome by the shop this week and taste the difference.\n\n#SlowBread", "alt": "Green post stating that bread takes its time and the bakery stopped rushing it.", "visual_prompt": "Calm green field, generous space."},
+    {"layout": "split", "rotation": "light", "eyebrow": "THE LOAF", "headline": "Two flours. One crust.", "items": ["Stone-milled wheat", "Whole rye"], "caption": "Our house loaf uses just two flours.\n\nThe rest is water, salt and patience.\n\n#SlowBread", "alt": "Ivory post with two panels naming stone-milled wheat and whole rye, the flours in the house loaf.", "visual_prompt": "Two simple panels in brand colors."},
+    {"layout": "bento", "rotation": "dark", "eyebrow": "WHAT YOU GET", "headline": "Three small pleasures.", "items": ["A crackling crust", "An open crumb", "A week of toast"], "caption": "A good loaf keeps giving.\n\nDay one for butter, day four for toast.\n\n#SlowBread", "alt": "Dark post with three cells: a crackling crust, an open crumb and a week of toast.", "visual_prompt": "Bento cells on a near-black field."},
+    {"layout": "steps", "rotation": "warm", "eyebrow": "AT HOME", "headline": "Keep it fresh.", "items": ["Slice from the middle", "Press the cut sides together", "Store it in linen"], "caption": "Plastic softens a good crust.\n\nThree small habits keep it crisp.\n\n#BreadTips", "alt": "Sand post with three steps: slice from the middle, press the cut sides together, store it in linen.", "visual_prompt": "Numbered rows on warm sand."},
+    {"layout": "myth", "rotation": "solid", "eyebrow": "A COMMON BELIEF", "headline": "Dark does not mean burnt.", "myth": "A dark crust tastes bitter", "fact": "It is where the flavor lives", "caption": "That deep color comes from a long, hot bake.\n\nTry a darker loaf next time and see what you think.\n\n#BreadTips", "alt": "Green post correcting the belief that a dark crust tastes bitter: it is where the flavor lives.", "visual_prompt": "Struck-through belief above an amber panel."},
+    {"layout": "versus", "rotation": "light", "eyebrow": "SIDE BY SIDE", "headline": "Know what you buy.", "left_label": "Fast loaf", "right_label": "Slow loaf", "items": ["Long ingredient list | Four ingredients", "Soft for days | Crust that crackles"], "caption": "Read the label on your next loaf.\n\nYou may be surprised how short it can be.\n\n#SlowBread", "alt": "Comparison of a fast loaf with a long ingredient list and a slow loaf with four ingredients.", "visual_prompt": "Two-column comparison on ivory."},
+    {"layout": "timeline", "rotation": "dark", "eyebrow": "OUR DAY", "headline": "How a loaf is made.", "items": ["Mill the grain", "Mix and rest", "Shape by hand", "Bake at dawn"], "caption": "No shortcuts, just a long day and an early morning.\n\nFollow along to see it happen.\n\n#BakeryLife", "alt": "Timeline of four points: mill the grain, mix and rest, shape by hand, bake at dawn.", "visual_prompt": "Vertical thread on near-black."},
+    {"layout": "checklist", "rotation": "warm", "eyebrow": "BEFORE YOU BUY", "headline": "Ask your baker.", "items": ["When was it baked?", "What flour is in it?", "How long did it rise?"], "caption": "Good bakers love these questions.\n\nAsk them next time you are in a shop, including ours.\n\n#BreadTips", "alt": "Sand checklist of three questions to ask a baker: when baked, what flour, how long it rose.", "visual_prompt": "Ticked rows on warm sand."},
+    {"layout": "closing", "rotation": "solid", "eyebrow": "THIS WEEK", "headline": "Come taste it warm.", "body": "The first loaves leave the oven at seven.", "cta": "Visit us this Saturday", "caption": "Saturday mornings are the best time to stop by.\n\nBring a bag and an appetite.\n\n#SlowBread", "alt": "Green closing post inviting readers to taste warm bread at seven, with a button to visit on Saturday.", "visual_prompt": "Calm green close with one amber action panel."}
+  ]
+}

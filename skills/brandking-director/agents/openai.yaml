@@ -1,0 +1,5 @@
+interface:
+  display_name: Brandking Director
+  short_description: Instagram posts, carousels and nine-grids, designed and measured.
+  default_prompt: Build a six-slide carousel for this brand
+  brand_color: "#D6F75A"

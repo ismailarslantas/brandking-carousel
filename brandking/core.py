@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -28,14 +29,29 @@ def write_json(path, data):
     Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
 
 
+def project_dir():
+    """The user's work: the current folder, or BRANDKING_PROJECT when it is set."""
+    return Path(os.environ.get('BRANDKING_PROJECT') or Path.cwd()).resolve()
+
+
+def search_paths():
+    """Look in the user's project first, then in the engine's bundled files."""
+    from .memory import homes
+    return [*dict.fromkeys([project_dir(), ROOT, *homes()])]
+
+
 def asset_path(value):
-    """Resolve a repository-relative asset. Paths may not leave the project."""
-    path = (ROOT / value).resolve()
-    if not path.is_relative_to(ROOT):
+    """Resolve a relative asset. Paths may not leave the project or the engine."""
+    inside = False
+    for base in search_paths():
+        path = (base / value).resolve()
+        if path.is_relative_to(base):
+            inside = True
+            if path.is_file():
+                return path
+    if not inside:
         raise PlanError('Assets must be inside the project directory.')
-    if not path.is_file():
-        raise PlanError(f'Asset not found: {value}')
-    return path
+    raise PlanError(f'Asset not found: {value}')
 
 
 def _channel(value):

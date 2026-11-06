@@ -1,6 +1,20 @@
 # Artwork
 
-The logo, hero, Court illustration and demo plate were generated in ChatGPT with the **Görsel Post & Carousel Direktörü** (Visual Post & Carousel Director) GPT, then checked by eye for spelling and fidelity. They are not needed to run the engine. Everything else in the README comes from real engine output, via `scripts/build_readme_images.py`.
+The logo, hero, Court illustration and demo plate were generated in ChatGPT with the Visual Post & Carousel Director GPT, then checked by eye for spelling and fidelity. They are not needed to run the engine. Everything else in the README comes from real engine output, via `scripts/build_readme_images.py`.
+
+## Showcase carousels
+
+The three sets in `assets/showcase/` were made in the same GPT, one image per message, with the cover anchoring the rest of the set. `scripts/build_showcase.py` crops them to exactly 1080 x 1350. Each brief named the brand, palette, font direction, visual idea, material and light, plus the exact copy per slide.
+
+| Set | Type direction | Palette | Visual idea |
+| --- | --- | --- | --- |
+| Maison Verrane | High-contrast refined serif | `#2B1620`, `#E9DCC9`, `#B8915A` | Every slide is lit by a single source |
+| Ember & Bun | Brush script over tight condensed capitals | `#D81F26`, `#FFC629`, `#F2E6D0`, `#1A1412` | A boxing poster for a burger |
+| Kestrelly | Tight geometric sans, frosted glass cards | `#2A0F6B`, `#7C3AED`, `#E9D5FF`, `#C6F542` | Tabs pile up and clear to a single card |
+
+Example cover brief:
+
+> A five-slide Instagram carousel for a portfolio case study, at the level of a Behance feature by a top creative director. Portrait 4:5. Brand: Maison Verrane, a niche perfume house. Font direction: high-contrast refined serif for headlines, light small tracked capitals for the eyebrow. Palette: deep aubergine #2B1620, warm sand #E9DCC9, antique gold #B8915A. Concept: every slide is lit by a single source, as if the bottle were the only light in the room. Real material: heavy unbranded glass, brushed brass cap, raw silk, warm stone. No text or logo on the bottle. Fixed footer: small tracked serif capitals centered, page marker top right. No lens flare, no glossy plastic, no drop shadows on type, no extra words. Slide 1: eyebrow THE SCENT NOTES, headline Perfume Is / Worn In / Silence, one glowing bottle lower right, a single shaft of window light, huge negative space.
 
 ## Logo concept
 
@@ -25,7 +39,7 @@ Colors: field `#111A17`, ivory `#F4F1E8`, acid lime `#D6F75A`, deep green `#183B
 
 ### Hero
 
-> GitHub README hero banner. Wide landscape 2:1, solid background #111A17. Left: the exact BRANDKING emblem small, then the large bold headline "Rule every swipe." and one small line, "The carousel engine that measures its own pixels." Right: the same friendly king, large and flat vector, on a throne made of a fanned stack of portrait 4:5 carousel cards in lime, ivory and deep green. A thin lime wavy line runs through all the cards and ends in a small crown. Cards hold only abstract shapes. Only generic social symbols. No gradients, no platform logos, no watermark.
+> GitHub README hero banner. Wide landscape 2:1, solid background #111A17. Left: the exact BRANDKING emblem small, a big lime badge "100% FREE", the large bold headline "Rule every swipe." and one small line, "Give your brand once. Get premium carousels, forever." Right: the same friendly king, large and flat vector, on a throne made of a fanned stack of portrait 4:5 carousel cards in lime, ivory and deep green. The king holds up a lime price tag reading FREE. Cards hold only abstract shapes. Only generic social symbols. No gradients, no platform logos, no watermark.
 
 ### The Court
 

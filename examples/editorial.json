@@ -1,5 +1,6 @@
 {
   "brand": {
+    "demo": true,
     "name": "Atelier Noor",
     "handle": "fictional demo brand",
     "house": "editorial",

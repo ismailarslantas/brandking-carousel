@@ -1,5 +1,6 @@
 import copy
 import json
+import os
 from pathlib import Path
 import shutil
 import tempfile
@@ -8,11 +9,15 @@ import zipfile
 
 from PIL import Image
 
-from brandking import audit, brandkit, cli, deliver, ledger, lint, runs
+from brandking import audit, brandkit, cli, deliver, gate, images, ledger, lint, memory, runs
 from brandking.canvas import Canvas
-from brandking.core import PlanError, ROOT, asset_path, contrast, read_json
+from brandking.core import PlanError, ROOT, asset_path, contrast, project_dir, read_json
 from brandking.layouts import LAYOUT_FUNCTIONS, render_slide, thread_y
 from brandking.plan import LAYOUTS, resolve_brand, validate
+
+# Tests must never touch the user's real brand memory.
+_MEMORY = tempfile.TemporaryDirectory(prefix='brandking-test-memory-')
+os.environ['BRANDKING_HOME'] = _MEMORY.name
 
 DEMO = ROOT / 'examples/demo.json'
 FIGTREE = ROOT / 'assets/fonts/Figtree.ttf'
@@ -102,10 +107,9 @@ class Delivery(Workspace):
             deliver.covers(self.write_plan(), self.dir / 'covers')
 
     def test_prompt_pack_keeps_plates_text_free(self):
-        brand, *_ = validate(self.plan)
-        pack = deliver.prompt_pack(self.plan, brand)
-        self.assertIn('No lettering', pack)
-        self.assertIn(brand['accent'], pack)
+        pack = images.prompts_markdown(self.plan)
+        self.assertIn('no text, no lettering', pack)
+        self.assertIn(resolve_brand(self.plan)['accent'], pack)
 
 
 class Validation(Workspace):
@@ -498,6 +502,399 @@ class Gates(Workspace):
     def test_run_id_cannot_escape(self):
         with self.assertRaises(PlanError):
             runs.new_run('../../evil')
+
+
+class Formats(Workspace):
+    def grid(self):
+        return read_json(ROOT / 'examples/grid.json')
+
+    def test_single_post_has_no_counter_or_thread(self):
+        plan = read_json(ROOT / 'examples/post.json')
+        brand, canvases = deliver.build(plan)
+        self.assertEqual(len(canvases), 1)
+        self.assertIsNone(canvases[0].thread_color)
+        self.assertFalse(any(op['role'] == 'counter' for op in canvases[0].ops))
+        result = deliver.check(plan)
+        self.assertEqual(next(f for f in result['audit'] if f['check'] == 'thread_seams')['severity'], 'skipped')
+
+    def test_post_with_two_slides_rejected(self):
+        plan = read_json(ROOT / 'examples/post.json')
+        plan['slides'] = plan['slides'] * 2
+        with self.assertRaises(PlanError):
+            validate(plan)
+
+    def test_grid_needs_nine(self):
+        plan = self.grid()
+        plan['slides'] = plan['slides'][:8]
+        with self.assertRaises(PlanError):
+            validate(plan)
+
+    def test_grid_rejects_a_matching_vertical_neighbour(self):
+        plan = self.grid()
+        plan['slides'][3]['rotation'] = plan['slides'][0]['rotation']
+        with self.assertRaisesRegex(PlanError, 'touch'):
+            validate(plan)
+
+    def test_grid_rejects_a_matching_horizontal_neighbour(self):
+        plan = self.grid()
+        plan['slides'][1]['rotation'] = plan['slides'][0]['rotation']
+        with self.assertRaisesRegex(PlanError, 'touch'):
+            validate(plan)
+
+    def test_grid_row_ends_are_not_neighbours(self):
+        plan = self.grid()
+        roles = ['solid', 'light', 'dark', 'dark', 'solid', 'light', 'warm', 'dark', 'solid']
+        for slide, role in zip(plan['slides'], roles):
+            slide['rotation'] = role
+        validate(plan)
+
+    def test_grid_limits_a_layout_to_two(self):
+        plan = self.grid()
+        for n in (0, 4, 8):
+            plan['slides'][n]['layout'] = 'statement'
+            plan['slides'][n]['body'] = 'One plain line.'
+        with self.assertRaisesRegex(PlanError, 'more than twice'):
+            validate(plan)
+
+    def test_grid_needs_a_caption_per_post(self):
+        plan = self.grid()
+        del plan['slides'][4]['caption']
+        with self.assertRaisesRegex(PlanError, 'own caption'):
+            validate(plan)
+
+    def test_grid_delivery_has_map_and_reverse_upload(self):
+        out = self.dir / 'grid'
+        result = deliver.render(ROOT / 'examples/grid.json', out)
+        self.assertEqual(result['status'], 'passed')
+        self.assertTrue((out / 'previews/grid-map.jpg').is_file())
+        self.assertFalse((out / 'previews/swipe-strip.jpg').exists())
+        self.assertIn('reverse order', (out / 'upload-checklist.md').read_text(encoding='utf-8'))
+        self.assertIn('Post 9', (out / 'caption.txt').read_text(encoding='utf-8'))
+
+    def test_series_allows_a_call_to_action_per_post(self):
+        plan = self.grid()
+        plan['format'] = 'series'
+        plan['slides'] = plan['slides'][:5]
+        for slide in plan['slides'][:2]:
+            slide['cta'] = 'Visit us today'
+        rules = {f['rule'] for f in lint.lint_plan(plan) if f['severity'] == 'fail'}
+        self.assertNotIn('one_cta', rules)
+
+    def test_unknown_format_rejected(self):
+        self.plan['format'] = 'reel'
+        with self.assertRaises(PlanError):
+            validate(self.plan)
+
+
+class ImageBridge(Workspace):
+    def picture(self, size, name='raw.png'):
+        path = self.dir / name
+        Image.new('RGB', size, '#336699').save(path)
+        return path
+
+    def test_fit_reaches_the_exact_size(self):
+        for fmt, source in (('post', (1024, 1280)), ('story', (1024, 1820)), ('square', (1024, 1024))):
+            out = self.dir / f'{fmt}.png'
+            images.fit(self.picture(source), out, fmt)
+            with Image.open(out) as result:
+                self.assertEqual(result.size, images.SIZES[fmt])
+
+    def test_fit_refuses_a_crop_that_could_cut_text(self):
+        with self.assertRaisesRegex(PlanError, 'would cut'):
+            images.fit(self.picture((1024, 1024)), self.dir / 'out.png', 'post')
+
+    def test_fit_allows_the_crop_for_plates_when_asked(self):
+        out = self.dir / 'out.png'
+        self.assertGreater(images.fit(self.picture((1024, 1024)), out, 'post', allow_crop=True)['cropped'], .1)
+
+    def test_fit_never_overwrites(self):
+        out = self.dir / 'out.png'
+        out.write_bytes(b'x')
+        with self.assertRaises(PlanError):
+            images.fit(self.picture((1024, 1280)), out, 'post')
+
+    def test_fit_places_the_logo_in_the_footer_band(self):
+        logo = self.dir / 'logo.png'
+        Image.new('RGBA', (200, 100), '#FF0000').save(logo)
+        out = self.dir / 'out.png'
+        images.fit(self.picture((1024, 1280)), out, 'post', logo=logo)
+        with Image.open(out) as result:
+            self.assertEqual(result.getpixel((540, 1245))[:3], (255, 0, 0))
+            self.assertNotEqual(result.getpixel((540, 1100))[:3], (255, 0, 0))
+
+    def test_plate_prompts_forbid_text_and_keep_the_visual_prompt(self):
+        for item in images.prompts(self.plan, 'plate'):
+            self.assertIn('no text', item['prompt'])
+            self.assertIn(self.plan['slides'][item['slide'] - 1]['visual_prompt'], item['prompt'])
+
+    def test_full_prompts_quote_the_exact_copy(self):
+        self.plan['slides'][1]['headline'] = 'Şöyle güçlü bir başlık'
+        prompt = images.prompts(self.plan, 'full')[1]['prompt']
+        self.assertIn('"Şöyle güçlü bir başlık"', prompt)
+        self.assertIn('print only the text listed above', prompt)
+
+    def test_prompts_mark_which_slides_need_a_picture(self):
+        items = images.prompts(read_json(ROOT / 'examples/photo.json'))
+        self.assertTrue(items[0]['needs_image'])
+        self.assertFalse(items[1]['needs_image'])
+
+
+class PlanGate(Workspace):
+    def setUp(self):
+        super().setUp()
+        self.old = project_dir()
+        import os
+        self.env = os.environ
+        self.env['BRANDKING_PROJECT'] = str(self.dir)
+        self.addCleanup(self.env.pop, 'BRANDKING_PROJECT', None)
+
+    def test_no_statement_blocks(self):
+        with self.assertRaisesRegex(PlanError, 'No plan confirmed'):
+            gate.check()
+
+    def test_every_qualifying_plan_passes(self):
+        for plan in ('plus', 'pro', 'business', 'edu', 'enterprise', ' Plus '):
+            gate.confirm(plan)
+            self.assertEqual(gate.check()['plan'], plan.strip().lower())
+
+    def test_free_and_go_are_refused_and_not_recorded(self):
+        for plan in ('free', 'go'):
+            with self.assertRaisesRegex(PlanError, 'does not qualify'):
+                gate.confirm(plan)
+        with self.assertRaises(PlanError):
+            gate.check()
+
+    def test_unknown_plan_refused(self):
+        with self.assertRaises(PlanError):
+            gate.confirm('platinum')
+
+    def test_tampered_record_is_refused(self):
+        gate.confirm('plus')
+        gate.gate_file().write_text('{"plan": "free"}', encoding='utf-8')
+        with self.assertRaisesRegex(PlanError, 'does not qualify'):
+            gate.check()
+
+    def test_record_admits_it_is_unverified(self):
+        self.assertIn('Not verified', gate.confirm('plus')['note'])
+
+    def test_doctor_never_claims_a_verified_plan(self):
+        finding = next(f for f in gate.doctor() if f['check'] == 'chatgpt_plan_verified')
+        self.assertEqual(finding['severity'], 'skipped')
+        self.assertTrue(finding['detail'])
+
+    def test_cli_exit_codes(self):
+        self.assertEqual(cli.main(['gate', 'check']), 1)
+        self.assertEqual(cli.main(['gate', 'confirm', '--plan', 'free']), 1)
+        self.assertEqual(cli.main(['gate', 'confirm', '--plan', 'plus']), 0)
+        self.assertEqual(cli.main(['gate', 'check']), 0)
+
+    def test_project_assets_are_found_outside_the_engine(self):
+        path = self.dir / 'mine.png'
+        Image.new('RGB', (10, 10)).save(path)
+        self.assertEqual(asset_path('mine.png'), path.resolve())
+        self.assertEqual(asset_path('assets/fonts/Figtree.ttf'), FIGTREE.resolve())
+        with self.assertRaises(PlanError):
+            asset_path('../outside.png')
+
+
+class BrandMemory(Workspace):
+    def setUp(self):
+        super().setUp()
+        home = self.dir / 'home'
+        project = self.dir / 'project'
+        project.mkdir()
+        old_home, old_project = os.environ.get('BRANDKING_HOME'), os.environ.get('BRANDKING_PROJECT')
+        os.environ['BRANDKING_HOME'] = str(home)
+        os.environ['BRANDKING_PROJECT'] = str(project)
+        self.addCleanup(os.environ.__setitem__, 'BRANDKING_HOME', old_home)
+        self.addCleanup(lambda: os.environ.pop('BRANDKING_PROJECT', None))
+        self.home, self.project = home, project
+
+    def save(self, **fields):
+        return memory.remember({'name': 'Atelier Noor', 'primary': '#5B2333', 'accent': '#E9B872', **fields})
+
+    def test_nothing_saved_returns_none(self):
+        self.assertIsNone(memory.recall())
+
+    def test_recall_returns_the_last_brand_used(self):
+        self.save()
+        memory.remember({'name': 'Second Brand', 'primary': '#123456', 'accent': '#FFAA00'})
+        self.assertEqual(memory.recall()['brand']['name'], 'Second Brand')
+        self.assertEqual(memory.recall('atelier-noor')['brand']['name'], 'Atelier Noor')
+
+    def test_memory_survives_across_projects(self):
+        self.save()
+        other = self.dir / 'other'
+        other.mkdir()
+        os.environ['BRANDKING_PROJECT'] = str(other)
+        self.assertEqual(memory.recall()['slug'], 'atelier-noor')
+
+    def test_two_colors_are_enough(self):
+        brand = self.save()['brand']
+        for key in ('dark', 'light', 'warm'):
+            self.assertRegex(brand[key], '^#[0-9A-F]{6}$')
+
+    def test_update_keeps_what_is_not_given(self):
+        self.save(handle='@noor', visual_structure='Quiet still lifes')
+        memory.remember({'slug': 'atelier-noor', 'accent': '#FFFFFF'})
+        brand = memory.recall()['brand']
+        self.assertEqual(brand['accent'], '#FFFFFF')
+        self.assertEqual(brand['handle'], '@noor')
+        self.assertEqual(brand['visual_structure'], 'Quiet still lifes')
+
+    def test_files_are_copied_so_the_originals_can_move(self):
+        logo = self.dir / 'logo.png'
+        Image.new('RGBA', (20, 10), '#FF0000').save(logo)
+        saved = self.save(logo=str(logo))
+        logo.unlink()
+        self.assertTrue(asset_path(saved['brand']['logo']).is_file())
+
+    def test_references_are_kept_and_not_duplicated(self):
+        ref = self.dir / 'look.png'
+        Image.new('RGB', (10, 10)).save(ref)
+        self.save()
+        memory.remember({'slug': 'atelier-noor'}, [ref])
+        memory.remember({'slug': 'atelier-noor'}, [ref])
+        self.assertEqual(memory.recall()['brand']['references'], ['brands/atelier-noor/references/look.png'])
+
+    def test_plan_without_a_brand_uses_memory(self):
+        self.save()
+        del self.plan['brand']
+        self.assertEqual(validate(self.plan)[0]['name'], 'Atelier Noor')
+        self.plan['brand'] = '@memory'
+        self.assertEqual(validate(self.plan)[0]['name'], 'Atelier Noor')
+        self.plan['brand'] = '@atelier-noor'
+        self.assertEqual(validate(self.plan)[0]['name'], 'Atelier Noor')
+
+    def test_plan_without_any_saved_brand_asks_once(self):
+        del self.plan['brand']
+        with self.assertRaisesRegex(PlanError, 'Give the brand details once'):
+            validate(self.plan)
+
+    def test_passing_render_remembers_an_inline_brand(self):
+        self.plan['brand'] = {'name': 'First Use', 'primary': '#183B32', 'accent': '#D6F75A', 'dark': '#111A17',
+                              'light': '#F6F7F2', 'warm': '#EDE5D3'}
+        result = deliver.render(self.write_plan(), self.dir / 'out')
+        self.assertEqual(result['remembered'], 'first-use')
+        self.assertEqual(memory.recall()['brand']['name'], 'First Use')
+
+    def test_demo_brands_are_never_remembered(self):
+        result = deliver.render(DEMO, self.dir / 'out')
+        self.assertIsNone(result['remembered'])
+        self.assertIsNone(memory.recall())
+
+    def test_failed_render_does_not_remember(self):
+        self.plan['brand'] = {'name': 'Bad Run', 'primary': '#183B32', 'accent': '#D6F75A', 'dark': '#111A17',
+                              'light': '#F6F7F2', 'warm': '#EDE5D3'}
+        self.plan['slides'][1]['body'] = 'Guaranteed results for everyone.'
+        deliver.render(self.write_plan(), self.dir / 'out')
+        self.assertIsNone(memory.recall())
+
+    def test_can_opt_out_of_remembering(self):
+        self.plan['brand'] = {'name': 'Private', 'primary': '#183B32', 'accent': '#D6F75A', 'dark': '#111A17',
+                              'light': '#F6F7F2', 'warm': '#EDE5D3'}
+        deliver.render(self.write_plan(), self.dir / 'out', remember=False)
+        self.assertIsNone(memory.recall())
+
+    def test_falls_back_to_the_project_when_home_is_not_writable(self):
+        blocker = self.dir / 'file-not-folder'
+        blocker.write_text('x', encoding='utf-8')
+        os.environ['BRANDKING_HOME'] = str(blocker)
+        saved = self.save()
+        self.assertEqual(saved['scope'], 'project')
+        self.assertTrue((self.project / '.brandking/brands/atelier-noor/brand.json').is_file())
+
+    def test_forget_removes_it(self):
+        self.save()
+        memory.forget('atelier-noor')
+        self.assertIsNone(memory.recall())
+        self.assertEqual(memory.list_brands(), [])
+
+    def test_forget_cannot_escape(self):
+        with self.assertRaises(PlanError):
+            memory.forget('../../evil')
+
+    def test_slug_keeps_letters_from_other_languages_readable(self):
+        self.assertEqual(memory.slugify('Çiçek & Şüphe'), 'cicek-suphe')
+
+    def test_font_name_and_structure_reach_the_prompts(self):
+        self.save(title_font_name='Playfair Display', visual_structure='Single light source, heavy glass')
+        del self.plan['brand']
+        prompt = images.prompts(self.plan, 'full')[0]['prompt']
+        self.assertIn('Playfair Display', prompt)
+        self.assertIn('Single light source', prompt)
+
+    def test_command_line_flow(self):
+        self.assertEqual(cli.main(['brand', 'recall']), 1)
+        self.assertEqual(cli.main(['brand', 'remember', '--name', 'Atelier Noor', '--primary', '#5B2333', '--accent', '#E9B872',
+                                   '--title-font-name', 'Playfair Display', '--visual-structure', 'Quiet', '--tone', 'Calm',
+                                   '--banned-word', 'cheap']), 0)
+        self.assertEqual(cli.main(['brand', 'recall', '--json']), 0)
+        self.assertEqual(memory.recall()['brand']['voice']['banned_words'], ['cheap'])
+        self.assertEqual(cli.main(['brand', 'list']), 0)
+        self.assertEqual(cli.main(['brand', 'forget', 'atelier-noor']), 0)
+
+
+class CodexPackage(unittest.TestCase):
+    def test_versions_agree(self):
+        from brandking import __version__
+        self.assertEqual(read_json(ROOT / '.codex-plugin/plugin.json')['version'], __version__)
+
+    def test_marketplace_points_at_the_plugin(self):
+        market = read_json(ROOT / '.agents/plugins/marketplace.json')
+        entry = market['plugins'][0]
+        self.assertEqual(entry['name'], read_json(ROOT / '.codex-plugin/plugin.json')['name'])
+        self.assertTrue(entry['source']['path'].startswith('./'))
+        for key in ('installation', 'authentication'):
+            self.assertIn(key, entry['policy'])
+        self.assertIn('category', entry)
+
+    def test_every_skill_has_name_and_description(self):
+        skills = sorted((ROOT / 'skills').glob('*/SKILL.md'))
+        self.assertGreaterEqual(len(skills), 3)
+        for path in skills:
+            head = path.read_text(encoding='utf-8').split('---')[1]
+            self.assertIn(f'name: {path.parent.name}', head)
+            self.assertIn('description: ', head)
+
+    def test_director_keeps_the_plan_gate_and_refuses_api_keys(self):
+        text = (ROOT / 'skills/brandking-director/SKILL.md').read_text(encoding='utf-8')
+        for phrase in ('ChatGPT Plus or higher', 'gate check', 'Never use the `OPENAI_API_KEY`', '$imagegen', 'letter by letter'):
+            self.assertIn(phrase, text)
+
+    def test_files_named_in_the_manifest_exist(self):
+        interface = read_json(ROOT / '.codex-plugin/plugin.json')['interface']
+        for key in ('composerIcon', 'logo'):
+            self.assertTrue((ROOT / interface[key]).is_file(), key)
+
+    def test_guides_named_by_the_skill_exist(self):
+        text = (ROOT / 'skills/brandking-director/SKILL.md').read_text(encoding='utf-8')
+        import re
+        for name in set(re.findall(r'guides/[\w-]+\.md', text)):
+            self.assertTrue((ROOT / name).is_file(), name)
+
+    def test_codex_agents_match_their_source(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('sync_agents', ROOT / 'scripts/sync_codex_agents.py')
+        sync = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(sync)
+        expected = sync.expected()
+        self.assertEqual(len(expected), 6)
+        for name, content in expected.items():
+            self.assertEqual((ROOT / '.codex/agents' / name).read_text(encoding='utf-8'), content, name)
+
+    def test_codex_agents_are_valid_toml(self):
+        try:
+            import tomllib
+        except ImportError:
+            self.skipTest('tomllib needs Python 3.11')
+        for path in (ROOT / '.codex/agents').glob('*.toml'):
+            data = tomllib.loads(path.read_text(encoding='utf-8'))
+            for key in ('name', 'description', 'developer_instructions'):
+                self.assertTrue(data[key], path.name)
+
+    def test_reference_images_are_not_shipped(self):
+        self.assertEqual(list(ROOT.glob('**/WhatsApp Image*')), [])
 
 
 class CommandLine(Workspace):

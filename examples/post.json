@@ -1,0 +1,10 @@
+{
+  "format": "post",
+  "brand": "brands/brandking",
+  "meta": {"hook_type": "command", "format": "single-post", "hypothesis": "A single quiet still life earns more sends than a graphic post."},
+  "caption": "Image tools paint well and spell badly.\n\nAsk for a picture with no words in it, then set the type yourself. Send this to whoever makes your graphics.\n\n#CarouselDesign #AIImages",
+  "sources": [],
+  "slides": [
+    {"layout": "photo", "rotation": "dark", "eyebrow": "ONE IDEA", "headline": "Paint first. Type last.", "emphasis": "last", "cta": "Send this to your designer", "background": "examples/plates/throne-room.png", "focus_y": 0, "alt": "Brass crown on a green velvet cushion above a dark panel with the headline Paint first, type last.", "visual_prompt": "Moody still life of a brass crown on a green velvet cushion, soft window light, calm dark stone in the lower half. No text, no lettering, no logos."}
+  ]
+}

@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT))
 from brandking.audit import audit_contrast  # noqa: E402
 from brandking.canvas import load_font  # noqa: E402
 from brandking.core import read_json  # noqa: E402
-from brandking.deliver import build, swipe_strip  # noqa: E402
+from brandking.deliver import build, grid_map, swipe_strip  # noqa: E402
 from brandking.layouts import render_slide  # noqa: E402
 from brandking.plan import validate  # noqa: E402
 
@@ -82,6 +82,7 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     strip_of('demo.json').save(OUT / 'swipe-strip.jpg', quality=90)
     houses()
+    grid_map(build(read_json(ROOT / 'examples/grid.json'))[1]).save(OUT / 'grid-map.jpg', quality=90)
     contrast_proof()
     print('Built', sorted(p.name for p in OUT.iterdir()))
 

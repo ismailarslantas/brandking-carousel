@@ -3,9 +3,10 @@
   "title": "Brandking carousel plan",
   "description": "Editor help only. The engine's own validation in brandking/plan.py is the authority.",
   "type": "object",
-  "required": ["brand", "caption", "slides"],
+  "required": ["slides"],
   "properties": {
     "brand": {"oneOf": [{"type": "string"}, {"type": "object"}]},
+    "format": {"enum": ["carousel", "post", "series", "grid"]},
     "caption": {"type": "string", "maxLength": 2200},
     "sources": {"type": "array", "items": {"type": "string"}},
     "cover_options": {"type": "array", "items": {"type": "string"}, "minItems": 3},
@@ -17,11 +18,11 @@
     },
     "meta": {
       "type": "object",
-      "properties": {"hook_type": {"type": "string"}, "format": {"type": "string"}, "hypothesis": {"type": "string"}}
+      "properties": {"concept": {"type": "string"}, "hook_type": {"type": "string"}, "format": {"type": "string"}, "hypothesis": {"type": "string"}}
     },
     "slides": {
       "type": "array",
-      "minItems": 3,
+      "minItems": 1,
       "maxItems": 20,
       "items": {
         "type": "object",
@@ -32,6 +33,7 @@
           "headline": {"type": "string"},
           "alt": {"type": "string"},
           "visual_prompt": {"type": "string"},
+          "caption": {"type": "string", "maxLength": 2200},
           "eyebrow": {"type": "string"},
           "emphasis": {"type": "string"},
           "body": {"type": "string"},

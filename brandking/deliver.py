@@ -12,8 +12,10 @@ from PIL import Image
 
 from .audit import GRID_CROP, audit_deck, summarize
 from .core import HEIGHT, PlanError, ROOT, WIDTH, asset_path, read_json, write_json
+from .images import prompts_markdown
 from .layouts import render_slide
 from .lint import has_failures, lint_plan, score_cover
+from .memory import remember_from_plan
 from .plan import validate
 from .styles import house_of
 
@@ -22,7 +24,8 @@ def build(plan):
     """Validate and compose every slide in memory. Writes nothing to disk."""
     brand, body, title = validate(plan)
     total = len(plan['slides'])
-    canvases = [render_slide(spec, brand, i, total, (body, title)) for i, spec in enumerate(plan['slides'], 1)]
+    sequence = plan.get('format', 'carousel') == 'carousel'
+    canvases = [render_slide(spec, brand, i, total, (body, title), sequence) for i, spec in enumerate(plan['slides'], 1)]
     return brand, canvases
 
 
@@ -30,7 +33,7 @@ def check(plan):
     """Run lint and the pixel audit without producing files. The agent's fast loop."""
     lint = lint_plan(plan)
     brand, canvases = build(plan)
-    audit = audit_deck(canvases, brand, plan.get('product_variant_exception', False))
+    audit = audit_deck(canvases, brand, plan.get('product_variant_exception', False), plan.get('format', 'carousel'))
     return {'lint': lint, 'audit': audit, 'lint_summary': summarize(lint) if lint else summarize([]),
             'audit_summary': summarize(audit), 'ok': not (has_failures(lint) or has_failures(audit))}
 
@@ -64,30 +67,35 @@ def grid_preview(cover):
     return sheet
 
 
-def prompt_pack(plan, brand):
-    """Paste-ready image prompts. Slide one anchors the look; plates stay text-free."""
-    colors = ', '.join(f'{k} {brand[k]}' for k in ('primary', 'accent', 'dark', 'light', 'warm'))
-    lines = [
-        '# Visual prompt pack', '',
-        'Only slides using `background` or `image` need generated pictures. Generate slide one first, then attach it',
-        'to every later prompt so the set keeps one look. Type is set by the engine, so plates must stay text-free.', '',
-        f'**Style block:** {brand.get("visual_style", house_of(brand)["description"])} Palette: {colors}.',
-        'No lettering, no logos, no watermarks, no fake interface, no platform marks. 4:5 portrait. Keep the area behind the planned panel calm.', '',
-    ]
-    for number, slide in enumerate(plan['slides'], 1):
-        needs = 'needs a picture' if slide.get('background') or slide.get('image') else 'composed by the engine'
-        lines += [f'## Slide {number}: {slide["layout"]} ({needs})', '', slide['visual_prompt'], '']
-    return '\n'.join(lines)
+def grid_map(canvases):
+    """Nine posts as profile tiles in 3:4, so the whole grid can be judged at once."""
+    crop = round(GRID_CROP)
+    tile = (300, 400)
+    sheet = Image.new('RGB', (3 * tile[0] + 16, 3 * tile[1] + 16), '#FFFFFF')
+    for j, canvas in enumerate(canvases):
+        picture = canvas.im.crop((crop, 0, WIDTH - crop, HEIGHT)).resize(tile, Image.Resampling.LANCZOS)
+        sheet.paste(picture, ((j % 3) * (tile[0] + 8), (j // 3) * (tile[1] + 8)))
+    return sheet
 
 
 def upload_checklist(plan, status):
     count = len(plan['slides'])
+    fmt = plan.get('format', 'carousel')
+    if fmt == 'grid':
+        order = [f'- [ ] Upload **in reverse order**, from `slides/{count:02d}.png` to `slides/01.png`, as separate posts. The newest post appears first, so this gives the planned grid.',
+                 '- [ ] Check `previews/grid-map.jpg`. Pinned posts and later uploads shift the layout.']
+    elif fmt == 'series':
+        order = [f'- [ ] Post `slides/01.png` to `slides/{count:02d}.png` separately, each with its own caption from `caption.txt`.']
+    elif fmt == 'post':
+        order = ['- [ ] Upload `slides/01.png`.']
+    else:
+        order = ['- [ ] Open `contact-sheet.jpg` and `previews/swipe-strip.jpg` on a phone.',
+                 f'- [ ] Upload `slides/01.png` to `slides/{count:02d}.png` in order, as one carousel.']
     return '\n'.join([
         '# Before you post', '',
         f'Automatic checks: **{status}**. Visual review: **pending** until `brandking signoff` records it.', '',
-        f'- [ ] Open `contact-sheet.jpg` and `previews/swipe-strip.jpg` on a phone.',
-        f'- [ ] Upload `slides/01.png` to `slides/{count:02d}.png` in order.',
-        '- [ ] Paste `caption.txt`. Add the alt text from `alt-texts.md` under Advanced settings.',
+        *order,
+        '- [ ] Paste the caption from `caption.txt`. Add the alt text from `alt-texts.md` under Advanced settings.',
         '- [ ] Check every number against `sources.md`.',
         '- [ ] After 7 days, log the results with `brandking ledger add`.', '',
     ])
@@ -107,16 +115,18 @@ def _write_recipe(output, plan, brand):
     for slide in plan['slides']:
         wanted |= {slide.get('image'), slide.get('background')}
     for value in wanted - {None}:
-        path = asset_path(value)
-        target = recipe / path.relative_to(ROOT)
+        target = recipe / value
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(path, target)
+        shutil.copy2(asset_path(value), target)
     for license_file in (ROOT / 'assets/fonts').glob('OFL*.txt'):
         shutil.copy2(license_file, recipe / 'assets/fonts' / license_file.name)
 
 
-def render(plan_path, output):
-    """Render a plan to a new folder. Returns the report; `status` says if it may ship."""
+def render(plan_path, output, remember=True):
+    """Render a plan to a new folder. Returns the report; `status` says if it may ship.
+
+    A brand used in a passing render is saved, so it never has to be given again.
+    """
     plan_path, output = Path(plan_path), Path(output).resolve()
     plan = read_json(plan_path)
     brand, canvases = build(plan)
@@ -136,11 +146,15 @@ def render(plan_path, output):
                          'sha256': hashlib.sha256(png.read_bytes()).hexdigest()})
     images = [canvas.im for canvas in canvases]
     images[0].save(output / 'slides.pdf', save_all=True, append_images=images[1:], resolution=144)
+    fmt = plan.get('format', 'carousel')
     contact_sheet(canvases).save(output / 'contact-sheet.jpg', quality=92)
-    swipe_strip(canvases).save(output / 'previews' / 'swipe-strip.jpg', quality=90)
+    if fmt == 'carousel':
+        swipe_strip(canvases).save(output / 'previews' / 'swipe-strip.jpg', quality=90)
     grid_preview(images[0]).save(output / 'previews' / 'grid-tile.jpg', quality=90)
+    if fmt == 'grid':
+        grid_map(canvases).save(output / 'previews' / 'grid-map.jpg', quality=90)
 
-    audit = audit_deck(canvases, brand, plan.get('product_variant_exception', False))
+    audit = audit_deck(canvases, brand, plan.get('product_variant_exception', False), fmt)
     blocked = has_failures(lint) or has_failures(audit)
     status = 'failed' if blocked else 'passed'
     report = {
@@ -156,11 +170,13 @@ def render(plan_path, output):
     write_json(output / 'plan.json', plan)
     write_json(output / 'manifest.json', manifest)
     write_json(output / 'brand-profile.json', brand)
-    (output / 'caption.txt').write_text(plan['caption'], encoding='utf-8')
+    captions = plan.get('caption') or '\n\n---\n\n'.join(
+        f'Post {i}\n\n{s["caption"]}' for i, s in enumerate(plan['slides'], 1))
+    (output / 'caption.txt').write_text(captions, encoding='utf-8')
     (output / 'alt-texts.md').write_text('\n\n'.join(f'{i}. {s["alt"]}' for i, s in enumerate(plan['slides'], 1)), encoding='utf-8')
     sources = list(plan.get('sources', [])) + [f'Slide {i}: {s["source"]}' for i, s in enumerate(plan['slides'], 1) if s.get('source')]
     (output / 'sources.md').write_text('\n'.join(sources) or 'No factual claims requiring external sources were declared.', encoding='utf-8')
-    (output / 'visual-prompts.md').write_text(prompt_pack(plan, brand), encoding='utf-8')
+    (output / 'visual-prompts.md').write_text(prompts_markdown({**plan, 'brand': brand}), encoding='utf-8')
     (output / 'upload-checklist.md').write_text(upload_checklist(plan, status), encoding='utf-8')
     _write_recipe(output, plan, brand)
     if not blocked:
@@ -170,7 +186,9 @@ def render(plan_path, output):
             for path in sorted(output.rglob('*')):
                 if path.is_file() and path != archive:
                     bundle.write(path, path.relative_to(output).as_posix())
-    return {'output': str(output), 'status': status, 'lint_summary': report['lint_summary'],
+    saved = remember_from_plan(brand) if remember and not blocked else None
+    return {'output': str(output), 'status': status, 'remembered': saved and saved['slug'],
+            'lint_summary': report['lint_summary'],
             'audit_summary': report['audit_summary'],
             'problems': [f for f in lint + audit if f['severity'] in {'fail', 'warn'}]}
 

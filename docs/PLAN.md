@@ -1,23 +1,39 @@
 # Plan format
 
-A plan is one JSON file that describes a whole carousel. `examples/demo.json` is a complete example, and `schemas/plan.schema.json` gives editors autocomplete. Paths are relative to the repository root, even when the plan lives in `private/`.
+A plan is one JSON file that describes a whole carousel, post, series or grid. `examples/` holds a complete example of each, and `schemas/plan.schema.json` gives editors autocomplete. Paths are relative to your project folder, the one you run the command from, even when the plan lives in `private/`. Files that are not there are looked up in the engine, which supplies the fonts and demo kit. Paths cannot leave these two folders.
 
 ## Top level
 
 | Field | Required | Meaning |
 | --- | --- | --- |
-| `brand` | yes | A kit path such as `"brands/brandking"`, or an inline object |
-| `caption` | yes | Post caption, up to 2,200 characters |
-| `slides` | yes | 3-20 slides. Lint suggests 5-10 |
+| `brand` | no | Leave out or use `"@memory"` for the last saved brand, `"@slug"` for another saved brand, a kit path, or an inline object |
+| `format` | no | `carousel` (default), `post`, `series` or `grid` |
+| `caption` | yes, except series and grid | Post caption, up to 2,200 characters. In a series or grid each slide has its own `caption` |
+| `slides` | yes | Carousel 3-20 (lint suggests 5-10), post 1, series 2-10, grid exactly 9 |
 | `promise` | recommended | `{"text": "...", "paid_on": 5}`: what the cover promises and which slide pays it off |
-| `meta` | recommended | `hook_type`, `format`, `hypothesis` for the ledger |
+| `meta` | recommended | `concept`, the deck's one-sentence visual idea, plus `hook_type`, `format` and `hypothesis` for the ledger |
 | `cover_options` | recommended | At least three headlines for `brandking covers` |
 | `sources` | when claims exist | A list of sources that covers the whole plan |
 | `product_variant_exception` | no | `true` allows repeated layouts and palette roles for a deliberate product range |
 
-## Brand kit
+## Formats
 
-A kit is a folder holding `brand.json`. Create one with `brandking brand init`.
+| Format | Variety rules | Counter and thread | Extra files |
+| --- | --- | --- | --- |
+| `carousel` | Adjacent slides change layout and palette role | Yes | `previews/swipe-strip.jpg` |
+| `post` | None | No | |
+| `series` | Same as carousel. Each post has a caption and may have a CTA | No | |
+| `grid` | Posts that touch sideways or vertically never share a palette role. At least four roles. A layout appears at most twice | No | `previews/grid-map.jpg`, reverse upload order |
+
+The eight-word limit applies only to a carousel's cover. Elsewhere the limit is 25 words.
+
+## Brand memory
+
+Give a brand once with `brandking brand remember`, or just use it in a passing `render`, and it is saved in `~/.brandking` (or `BRANDKING_HOME`) on this computer, with copies of its files. Every later plan can leave `brand` out. Inside a sandbox that blocks that folder, it is saved in `.brandking/` in the project instead. Use `brand recall`, `brand list` and `brand forget`. `--no-remember` skips saving on a render. Example brands with `"demo": true` are never saved.
+
+## Brand fields
+
+`brand.json` holds the following. A shareable kit is the same file in any folder, created with `brandking brand init`.
 
 | Field | Meaning |
 | --- | --- |
@@ -25,9 +41,12 @@ A kit is a folder holding `brand.json`. Create one with `brandking brand init`.
 | `primary`, `accent`, `dark`, `light`, `warm` | Required six-digit HEX colors |
 | `house` | `sovereign`, `editorial` or `poster` |
 | `font`, `title_font` | Optional font files that override the house. Check you may redistribute them |
+| `font_name`, `title_font_name` | Font names used in image prompts, when there is no file |
+| `visual_structure` | How the brand should look, in a sentence or two. Leads every image prompt |
+| `references` | Saved reference images the director looks at |
 | `logo` | Optional image for the footer |
 | `handle` | Optional text at the right of the footer |
-| `footer` | `split` (logo left, handle right) or `center` |
+| `footer` | `split` (lock B: logo left, handle right) or `center` (lock A). Locks C-E need a full-design image |
 | `thread` | `false` turns off the Crown Thread |
 | `visual_style` | Sentence used in the image prompt pack |
 | `voice` | `tone`, `banned_words`, `allowed_words`, `max_hashtags` |
@@ -37,7 +56,7 @@ A kit is a folder holding `brand.json`. Create one with `brandking brand init`.
 
 Every slide needs `layout`, `rotation`, `headline`, `alt` and `visual_prompt`. `rotation` is the palette role: `solid`, `light`, `dark` or `warm`.
 
-Optional on any slide: `eyebrow`, `emphasis` (words from the headline to highlight), `source`.
+Optional on any slide: `eyebrow`, `emphasis` (words from the headline to highlight), `source`, `background` with `focus_y`, and `caption` in a series or grid.
 
 | Layout | Extra fields | Notes |
 | --- | --- | --- |
@@ -88,4 +107,4 @@ The cover holds 8 words. Other slides hold 25, or 30 for `versus` and `quote`. H
 
 Nothing here judges persuasion, taste or whether a claim is true. `unsourced_number` confirms a source was named, not that it says what you claim. It only detects common number patterns, so a claim in words can pass. Reading these limits is part of the job: visual review stays `pending` until `brandking signoff` records a real review.
 
-The engine renders one size, 1080 x 1350. It does not log in to Instagram, read profiles, post, or call any image service. PNG is the authoritative export. SVG text stays editable, though fonts can render differently in other editors. Exact pixels can vary between operating systems.
+The engine's layouts render one size, 1080 x 1350. `brandking fit` brings generated images to 1080 x 1350, 1080 x 1920 or 1080 x 1080. The engine cannot read text inside a generated image, which is why a full design needs a separate read-back. It does not log in to Instagram, read profiles, post, or call any image service; image generation happens in the agent's own tool. PNG is the authoritative export. SVG text stays editable, though fonts can render differently in other editors. Exact pixels can vary between operating systems.
