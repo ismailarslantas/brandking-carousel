@@ -1,0 +1,24 @@
+{
+  "brand": {
+    "name": "SMOKE & RYE",
+    "handle": "fictional demo brand",
+    "house": "poster",
+    "primary": "#C8321E",
+    "accent": "#FFC62B",
+    "dark": "#1A1412",
+    "light": "#FFF6E6",
+    "warm": "#F3D9B1",
+    "evidence": "Fictional demo identity. No real brand or profile was analyzed."
+  },
+  "promise": {"text": "Four steps that fix a dry brisket.", "paid_on": 3},
+  "meta": {"hook_type": "warning", "format": "how-to", "hypothesis": "Loud poster covers earn more sends in food audiences."},
+  "caption": "Dry brisket is rarely the cut's fault.\n\nIt usually comes down to pulling it too early or slicing it too soon. Send this to whoever runs your smoker.\n\n#Brisket #BBQ",
+  "sources": [],
+  "slides": [
+    {"layout": "cover", "rotation": "solid", "eyebrow": "PIT NOTES", "headline": "Stop slicing it hot.", "alt": "Red poster cover with the condensed headline Stop slicing it hot above three cards.", "visual_prompt": "Three overlapping cards in yellow and cream. Composed by the engine."},
+    {"layout": "bento", "rotation": "light", "eyebrow": "WHY IT DRIES OUT", "headline": "Three usual suspects.", "items": ["Pulled too early", "Rested too little", "Sliced with the grain"], "alt": "Three cells listing the usual causes of dry brisket: pulled early, rested too little, sliced with the grain.", "visual_prompt": "Bento cells in the brand palette."},
+    {"layout": "steps", "rotation": "dark", "eyebrow": "THE FIX", "headline": "Slow down at the end.", "items": ["Probe until it feels soft", "Rest it wrapped and warm", "Slice across the grain"], "alt": "Three numbered steps: probe until soft, rest wrapped and warm, slice across the grain.", "visual_prompt": "Numbered rows on near-black."},
+    {"layout": "stat", "rotation": "warm", "eyebrow": "RULE OF THE PIT", "value": "1 HOUR", "headline": "Minimum rest.", "body": "Longer is usually better.", "source": "House rule, fictional demo", "alt": "Sand slide with a large value of one hour as the minimum rest, marked as a fictional house rule.", "visual_prompt": "Huge condensed value on sand."},
+    {"layout": "closing", "rotation": "solid", "eyebrow": "NEXT COOK", "headline": "Patience is the rub.", "body": "Plan the rest into your timing.", "cta": "Send this to your pitmaster", "alt": "Red closing slide asking the reader to plan the rest and send the post to their pitmaster.", "visual_prompt": "Loud red close with one yellow action panel."}
+  ]
+}

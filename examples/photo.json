@@ -1,0 +1,14 @@
+{
+  "brand": "brands/brandking",
+  "promise": {"text": "Pictures from any image tool, with type that stays correct.", "paid_on": 3},
+  "meta": {"hook_type": "command", "format": "education", "hypothesis": "A photographic cover earns more sends than a graphic cover."},
+  "caption": "Image tools paint beautifully and spell badly.\n\nAsk for a picture with no words in it, then let the engine set the type. Spelling comes from your plan, and contrast gets measured on the finished slide. Send this to whoever makes your graphics.\n\n#CarouselDesign #AIImages",
+  "sources": [],
+  "slides": [
+    {"layout": "photo", "rotation": "dark", "eyebrow": "IMAGE PLATES", "headline": "Never let models spell.", "emphasis": "spell", "background": "examples/plates/throne-room.png", "focus_y": 0, "alt": "Brass crown on a green velvet cushion above a dark panel with the headline Never let models spell.", "visual_prompt": "Moody still life of a brass crown on a green velvet cushion, soft window light, calm dark stone in the lower half. No text, no lettering, no logos."},
+    {"layout": "myth", "rotation": "light", "eyebrow": "THE USUAL ADVICE", "headline": "Better prompts won't save you.", "myth": "A sharper prompt fixes the letters", "fact": "Keep letters out of the picture", "alt": "Ivory slide correcting the belief that a sharper prompt fixes letters: keep letters out of the picture.", "visual_prompt": "Struck-through myth above a lime fact panel."},
+    {"layout": "steps", "rotation": "solid", "eyebrow": "THE METHOD", "headline": "Split the job in two.", "items": ["Model paints the plate", "Engine sets the type", "Audit measures the result"], "alt": "Three numbered steps: the model paints the plate, the engine sets the type, the audit measures the result.", "visual_prompt": "Numbered rows on deep green."},
+    {"layout": "checklist", "rotation": "warm", "eyebrow": "A GOOD PLATE", "headline": "Ask for these.", "items": ["No text in the prompt", "One calm area for type", "Your palette in HEX"], "alt": "Checklist for a good plate: no text in the prompt, one calm area for type, your palette in HEX.", "visual_prompt": "Ticked rows on warm neutral."},
+    {"layout": "closing", "rotation": "dark", "eyebrow": "NEXT TIME", "headline": "Paint first. Type last.", "body": "Your next set will read correctly on the first try.", "cta": "Send this to your designer", "alt": "Dark closing slide saying paint first and type last, with a lime panel asking to send the post to a designer.", "visual_prompt": "Dark close with one lime action panel."}
+  ]
+}

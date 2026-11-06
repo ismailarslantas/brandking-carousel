@@ -1,0 +1,21 @@
+{
+  "name": "BRANDKING",
+  "handle": "open-source demo",
+  "house": "sovereign",
+  "primary": "#183B32",
+  "accent": "#D6F75A",
+  "dark": "#111A17",
+  "light": "#F6F7F2",
+  "warm": "#EDE5D3",
+  "footer": "split",
+  "thread": true,
+  "logo": "assets/brand/logo-horizontal.png",
+  "visual_style": "Flat, confident, modern emblem graphics and calm editorial photography.",
+  "voice": {
+    "tone": "Plain, specific, a little dry. Talks to one reader. Never oversells.",
+    "banned_words": ["hack", "hustle", "guru"],
+    "allowed_words": [],
+    "max_hashtags": 5
+  },
+  "evidence": "The project's own identity: logo art directed for this repository."
+}

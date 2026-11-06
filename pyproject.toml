@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brandking-carousel"
+description = "Local carousel engine for AI agents: measured pixel QA, copy lint, brand kits and a results ledger."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dynamic = ["version", "dependencies"]
+
+[project.scripts]
+brandking = "brandking.cli:main"
+
+[tool.setuptools]
+packages = ["brandking"]
+
+[tool.setuptools.dynamic]
+version = { attr = "brandking.__version__" }
+dependencies = { file = ["requirements.txt"] }

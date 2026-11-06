@@ -13,7 +13,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
         with:
@@ -23,7 +23,13 @@ jobs:
           python-version: '3.12'
       - name: Install free dependencies
         run: python -m pip install -r requirements.txt
-      - name: Test renderer and delivery
+      - name: Test engine, audit and lint
         run: python -m unittest discover -s tests -v
-      - name: Render demo carousel
-        run: python carousel.py --output outputs/demo
+      - name: Render every example with all checks on
+        shell: bash
+        run: |
+          for plan in examples/*.json; do
+            python -m brandking render "$plan" --output "outputs/$(basename "$plan" .json)"
+          done
+      - name: Older command still works
+        run: python carousel.py --output outputs/shim

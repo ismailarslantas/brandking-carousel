@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Brandking carousel plan",
+  "description": "Editor help only. The engine's own validation in brandking/plan.py is the authority.",
+  "type": "object",
+  "required": ["brand", "caption", "slides"],
+  "properties": {
+    "brand": {"oneOf": [{"type": "string"}, {"type": "object"}]},
+    "caption": {"type": "string", "maxLength": 2200},
+    "sources": {"type": "array", "items": {"type": "string"}},
+    "cover_options": {"type": "array", "items": {"type": "string"}, "minItems": 3},
+    "product_variant_exception": {"type": "boolean"},
+    "promise": {
+      "type": "object",
+      "required": ["text", "paid_on"],
+      "properties": {"text": {"type": "string"}, "paid_on": {"type": "integer", "minimum": 2}}
+    },
+    "meta": {
+      "type": "object",
+      "properties": {"hook_type": {"type": "string"}, "format": {"type": "string"}, "hypothesis": {"type": "string"}}
+    },
+    "slides": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["layout", "rotation", "headline", "alt", "visual_prompt"],
+        "properties": {
+          "layout": {"enum": ["cover", "statement", "split", "steps", "checklist", "timeline", "versus", "myth", "stat", "quote", "bento", "photo", "closing"]},
+          "rotation": {"enum": ["solid", "light", "dark", "warm"]},
+          "headline": {"type": "string"},
+          "alt": {"type": "string"},
+          "visual_prompt": {"type": "string"},
+          "eyebrow": {"type": "string"},
+          "emphasis": {"type": "string"},
+          "body": {"type": "string"},
+          "items": {"type": "array", "items": {"type": "string"}, "maxItems": 4},
+          "image": {"type": "string"},
+          "background": {"type": "string"},
+          "panel": {"type": "boolean"},
+          "focus_y": {"type": "number", "minimum": 0, "maximum": 1},
+          "cta": {"type": "string"},
+          "value": {"type": "string"},
+          "source": {"type": "string"},
+          "attribution": {"type": "string"},
+          "myth": {"type": "string"},
+          "fact": {"type": "string"},
+          "left_label": {"type": "string"},
+          "right_label": {"type": "string"}
+        }
+      }
+    }
+  }
+}
