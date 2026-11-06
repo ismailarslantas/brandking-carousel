@@ -173,7 +173,7 @@ The full flow is in [docs/WORKFLOW.md](docs/WORKFLOW.md).
 | **Headline restyle, copy only** | Rewrites, captions, hashtags | Copy lint |
 
 <p align="center">
-  <img src="assets/readme/grid-map.jpg" alt="Nine posts for a fictional bakery as a three by three profile grid, each with a different background and layout." width="520">
+  <img src="assets/readme/grid-map.jpg" alt="Nine posts for a bakery as a three by three profile grid, each with a different background and layout." width="520">
 </p>
 <p align="center"><sub>Rendered from <code>examples/grid.json</code> with the built-in layouts. One palette, nine different roles.</sub></p>
 
