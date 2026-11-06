@@ -3,6 +3,7 @@ __pycache__/
 .venv/
 outputs/
 private/
+.brandking/
 .env
 .env.*
 *.zip

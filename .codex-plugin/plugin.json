@@ -1,0 +1,31 @@
+{
+  "name": "brandking",
+  "version": "2.1.0",
+  "description": "Instagram post, carousel, nine-grid and story director for Codex. Designs with ChatGPT image generation (ChatGPT Plus or higher), then measures its own pixels.",
+  "author": {
+    "name": "İsmail Arslantaş",
+    "url": "https://github.com/ismailarslantas"
+  },
+  "homepage": "https://github.com/ismailarslantas/brandking-carousel",
+  "repository": "https://github.com/ismailarslantas/brandking-carousel",
+  "license": "MIT",
+  "keywords": ["instagram", "carousel", "social-media", "image-generation", "design"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Brandking",
+    "shortDescription": "Instagram posts, carousels and nine-grids, designed and measured.",
+    "longDescription": "A creative director for Instagram. Brandking writes the idea, the copy and the placement, designs with ChatGPT image generation, sets type with a local engine and measures the result. Image generation requires ChatGPT Plus or higher.",
+    "developerName": "İsmail Arslantaş",
+    "category": "Creativity",
+    "capabilities": ["skills"],
+    "websiteURL": "https://github.com/ismailarslantas/brandking-carousel",
+    "defaultPrompt": [
+      "Build a six-slide carousel for this brand",
+      "Set up a nine-post grid for this product",
+      "Suggest post copy and placement for this photo"
+    ],
+    "brandColor": "#D6F75A",
+    "composerIcon": "./assets/brand/favicon.png",
+    "logo": "./assets/brand/avatar.png"
+  }
+}

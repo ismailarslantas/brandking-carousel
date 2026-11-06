@@ -47,6 +47,8 @@ def lint_plan(plan):
     allowed = {w.casefold() for w in voice.get('allowed_words', [])}
     banned = voice.get('banned_words', [])
     has_global_sources = bool(plan.get('sources'))
+    fmt = plan.get('format', 'carousel')
+    is_carousel = fmt == 'carousel'
     em_dashes = 0
 
     for number, slide in enumerate(slides, 1):
@@ -94,47 +96,53 @@ def lint_plan(plan):
         if phrase in cover:
             out.append(_finding('generic_cover', 'warn', f'{phrase!r} could sit on any account. Be specific.', 1))
 
-    if len(slides) > 1:
+    if is_carousel and len(slides) > 1:
         second = slides[1]['headline'].split()[0].casefold()
         if second in {'this', 'that', 'it', 'these', 'those', 'they', 'so', 'and', 'but'}:
             out.append(_finding('slide_two', 'warn', 'Slide two leans on the cover. Some readers meet it first, so make it stand alone.', 2))
 
     calls = [n for n, slide in enumerate(slides, 1) if slide.get('cta')]
-    if len(calls) > 1:
+    if is_carousel and len(calls) > 1:
         out.append(_finding('one_cta', 'fail', f'Slides {calls} all ask for an action. Pick one.'))
-    if calls:
-        verb = slides[calls[0] - 1]['cta'].split()[0].casefold().strip('.,!')
+    for call in calls:
+        verb = slides[call - 1]['cta'].split()[0].casefold().strip('.,!')
         if verb not in CTA_VERBS:
-            out.append(_finding('cta_verb', 'warn', f'The CTA opens with {verb!r}. Open with what the reader should do.', calls[0]))
-    else:
+            out.append(_finding('cta_verb', 'warn', f'The CTA opens with {verb!r}. Open with what the reader should do.', call))
+    if not calls:
         out.append(_finding('one_cta', 'warn', 'No slide asks for an action.'))
 
     promise = plan.get('promise')
-    if not promise:
+    if not is_carousel:
+        pass
+    elif not promise:
         out.append(_finding('promise_payoff', 'warn', 'State what the cover promises and which slide pays it off: "promise": {"text": ..., "paid_on": n}.'))
     elif not isinstance(promise.get('paid_on'), int) or not 2 <= promise['paid_on'] <= len(slides):
         out.append(_finding('promise_payoff', 'fail', 'promise.paid_on must be a slide after the cover.'))
 
-    caption = plan.get('caption', '')
-    if len(caption) > 2200:
-        out.append(_finding('caption_length', 'fail', f'Caption is {len(caption)} characters, Instagram allows 2,200.'))
-    opening = caption.strip().split('\n')[0]
-    if len(opening) > 125:
-        out.append(_finding('caption_opening', 'warn', 'The first line runs past 125 characters and may be cut off in the feed.'))
-    if opening.casefold().strip(' .!') == slides[0]['headline'].casefold().strip(' .!'):
-        out.append(_finding('caption_opening', 'warn', 'The caption repeats the cover. Open from a different angle.'))
-    tags = re.findall(r'(?<!\w)#\w+', caption)
+    captions = [(None, plan.get('caption', ''), slides[0]['headline'])] if fmt not in {'series', 'grid'} else [
+        (n, slide.get('caption', ''), slide['headline']) for n, slide in enumerate(slides, 1)]
     limit = voice.get('max_hashtags', 5)
-    if len(tags) > limit:
-        out.append(_finding('hashtags', 'warn', f'{len(tags)} hashtags, this brand\'s limit is {limit}.'))
-    if PLACEHOLDER.search(caption):
-        out.append(_finding('placeholder', 'fail', 'Caption still has placeholder text.'))
-    for phrase in HYPE:
-        if phrase not in allowed and _contains(caption, phrase):
-            out.append(_finding('hype_claim', 'fail', f'Caption: {phrase!r} promises what nobody can promise.'))
-    if CLAIM.search(caption) and not has_global_sources:
-        out.append(_finding('unsourced_number', 'fail', 'The caption has a numeric claim but the plan has no sources.'))
-    if not 5 <= len(slides) <= 10:
+    for number, caption, headline in captions:
+        if len(caption) > 2200:
+            out.append(_finding('caption_length', 'fail', f'Caption is {len(caption)} characters, Instagram allows 2,200.', number))
+        opening = caption.strip().split('\n')[0]
+        if len(opening) > 125:
+            out.append(_finding('caption_opening', 'warn', 'The first line runs past 125 characters and may be cut off in the feed.', number))
+        if opening.casefold().strip(' .!') == headline.casefold().strip(' .!'):
+            out.append(_finding('caption_opening', 'warn', 'The caption repeats the headline. Open from a different angle.', number))
+        tags = re.findall(r'(?<!\w)#\w+', caption)
+        if len(tags) > limit:
+            out.append(_finding('hashtags', 'warn', f'{len(tags)} hashtags, this brand\'s limit is {limit}.', number))
+        if PLACEHOLDER.search(caption):
+            out.append(_finding('placeholder', 'fail', 'Caption still has placeholder text.', number))
+        for phrase in HYPE:
+            if phrase not in allowed and _contains(caption, phrase):
+                out.append(_finding('hype_claim', 'fail', f'Caption: {phrase!r} promises what nobody can promise.', number))
+        if CLAIM.search(caption) and not has_global_sources:
+            source = number and slides[number - 1].get('source')
+            if not source:
+                out.append(_finding('unsourced_number', 'fail', 'The caption has a numeric claim but no source.', number))
+    if is_carousel and not 5 <= len(slides) <= 10:
         out.append(_finding('deck_length', 'warn', f'{len(slides)} slides. Most stories fit in 5-10.'))
     return out
 

@@ -121,9 +121,9 @@ def _thread_center(image, x, color):
     return sum(ys) / len(ys) if ys else None
 
 
-def audit_thread(canvases, enabled):
+def audit_thread(canvases, enabled, reason='The brand kit turns the Crown Thread off.'):
     if not enabled:
-        return [_finding('thread_seams', 'skipped', 'The brand kit turns the Crown Thread off.')]
+        return [_finding('thread_seams', 'skipped', reason)]
     out = []
     for n in range(len(canvases) - 1):
         a = _thread_center(canvases[n].im, WIDTH - 1, canvases[n].thread_color)
@@ -141,6 +141,8 @@ def audit_thread(canvases, enabled):
 def audit_rhythm(canvases, exempt):
     if exempt:
         return [_finding('visual_rhythm', 'skipped', 'The plan declares a product variant exception.')]
+    if len(canvases) < 2:
+        return [_finding('visual_rhythm', 'skipped', 'A single post has no neighbours to compare.')]
     def thumb(canvas):
         return canvas.im.convert('L').resize((32, 40), Image.Resampling.BILINEAR).tobytes()
     out = []
@@ -154,14 +156,18 @@ def audit_rhythm(canvases, exempt):
     return out
 
 
-def audit_deck(canvases, brand, exempt=False):
+def audit_deck(canvases, brand, exempt=False, fmt='carousel'):
     findings = []
     for number, canvas in enumerate(canvases, 1):
         if canvas.im.size != (WIDTH, HEIGHT):
             findings.append(_finding('canvas_size', 'fail', f'Slide is {canvas.im.size}.', number))
         findings += audit_contrast(canvas, number)
-        findings += audit_layout(canvas, number, number == 1)
-    findings += audit_thread(canvases, brand.get('thread', True))
+        # Outside a carousel every post appears on the profile, so each is a grid tile.
+        findings += audit_layout(canvas, number, number == 1 or fmt != 'carousel')
+    if fmt != 'carousel':
+        findings += audit_thread(canvases, False, 'The thread is for swiped carousels only.')
+    else:
+        findings += audit_thread(canvases, brand.get('thread', True))
     findings += audit_rhythm(canvases, exempt)
     return findings
 

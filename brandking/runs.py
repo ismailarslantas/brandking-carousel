@@ -5,7 +5,7 @@ from datetime import date
 from pathlib import Path
 import re
 
-from .core import PlanError, ROOT, read_json, write_json
+from .core import PlanError, project_dir, read_json, write_json
 
 BRIEF = """# Brief: {run_id}
 
@@ -23,7 +23,7 @@ Facts and sources available:
 def run_dir(run_id):
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]*', run_id):
         raise PlanError('A run id uses letters, digits, dots, hyphens and underscores.')
-    return ROOT / 'private' / 'runs' / run_id
+    return project_dir() / 'private' / 'runs' / run_id
 
 
 def new_run(run_id):

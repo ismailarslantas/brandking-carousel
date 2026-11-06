@@ -4,7 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 import re
 
-from .core import PlanError, ROOT, asset_path, contrast, mix, read_json, write_json
+from .core import PlanError, asset_path, contrast, mix, project_dir, read_json, write_json
 from .plan import COLOR_KEYS
 from .styles import HOUSES
 
@@ -27,7 +27,7 @@ def init_kit(slug, name, primary, accent, handle='', house='sovereign', root=Non
             raise PlanError(f'{label} must be a six-digit HEX color.')
     if house not in HOUSES:
         raise PlanError(f'house must be one of {", ".join(sorted(HOUSES))}.')
-    folder = Path(root or ROOT / 'private' / 'brands') / slug
+    folder = Path(root or project_dir() / 'private' / 'brands') / slug
     if (folder / 'brand.json').exists():
         raise PlanError(f'{folder} already holds a brand kit. Edit it instead.')
     folder.mkdir(parents=True, exist_ok=True)

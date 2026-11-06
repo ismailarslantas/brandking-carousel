@@ -9,14 +9,14 @@ from datetime import date
 import json
 from pathlib import Path
 
-from .core import PlanError, ROOT
+from .core import PlanError, project_dir
 
 METRICS = ('reach', 'saves', 'sends', 'likes', 'comments', 'follows')
 MIN_POSTS = 5
 
 
 def default_path():
-    return ROOT / 'private' / 'ledger.jsonl'
+    return project_dir() / 'private' / 'ledger.jsonl'
 
 
 def load(path=None):

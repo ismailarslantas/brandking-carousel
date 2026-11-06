@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 import sys
 
-from . import __version__, brandkit, deliver, ledger, runs
+from . import __version__, brandkit, deliver, gate, images, ledger, memory, runs
 from .core import PlanError, read_json
 from .lint import has_failures, lint_plan
 from .plan import LAYOUTS, validate
@@ -47,7 +47,7 @@ def _cmd_check(args):
 
 
 def _cmd_render(args):
-    result = deliver.render(args.plan, args.output)
+    result = deliver.render(args.plan, args.output, not args.no_remember)
     failed = result['status'] != 'passed'
     if args.json:
         return result, failed
@@ -57,6 +57,8 @@ def _cmd_render(args):
         print(f'Automatic checks FAILED. Inspect {result["output"]}. No carousel.zip was made.')
     else:
         print(f'Carousel exported to {result["output"]}. Automatic checks passed; visual review is still required.')
+        if result['remembered']:
+            print(f'Brand saved as "{result["remembered"]}". It will not be asked for again.')
     return None, failed
 
 
@@ -97,6 +99,58 @@ def _cmd_brand_check(args):
         return result, failed
     _print_findings(result['findings'], 'check')
     return None, failed
+
+
+def _cmd_brand_remember(args):
+    fields = {'slug': args.slug, 'name': args.name, 'handle': args.handle, 'house': args.house,
+              'primary': args.primary, 'accent': args.accent, 'dark': args.dark, 'light': args.light,
+              'warm': args.warm, 'footer': args.footer, 'logo': args.logo, 'font': args.font,
+              'title_font': args.title_font, 'font_name': args.font_name, 'title_font_name': args.title_font_name,
+              'visual_structure': args.visual_structure, 'website': args.website, 'sector': args.sector}
+    voice = {key: value for key, value in (('tone', args.tone), ('banned_words', args.banned_word)) if value}
+    if voice:
+        fields['voice'] = voice
+    saved = memory.remember(fields, args.reference or ())
+    if args.json:
+        return saved, False
+    print(f'Saved {saved["brand"].get("name")} as "{saved["slug"]}" in {saved["path"]}. It will not be asked for again.')
+    if saved['scope'] == 'project':
+        print('Saved for this project only, because the shared folder could not be written.')
+    return None, False
+
+
+def _cmd_brand_recall(args):
+    saved = memory.recall(args.slug)
+    if not saved:
+        message = {'found': False, 'next': 'Ask for the brand details once, then run: brand remember'}
+        if args.json:
+            print(json.dumps(message, ensure_ascii=False, indent=2))
+        else:
+            print('No saved brand yet. Give the details once with: brand remember')
+        return None, True
+    if args.json:
+        return {'found': True, **saved}, False
+    print(memory.dumps(saved))
+    return None, False
+
+
+def _cmd_brand_list(args):
+    rows = memory.list_brands()
+    if args.json:
+        return {'brands': rows}, False
+    for row in rows:
+        print(f'  {"*" if row["active"] else " "} {row["slug"]:<24} {row["name"]} ({row["scope"]})')
+    if not rows:
+        print('No saved brands yet.')
+    return None, False
+
+
+def _cmd_brand_forget(args):
+    memory.forget(args.slug)
+    if args.json:
+        return {'forgotten': args.slug}, False
+    print(f'Forgot {args.slug}.')
+    return None, False
 
 
 def _cmd_run_new(args):
@@ -148,6 +202,47 @@ def _cmd_ledger_report(args):
     return None, False
 
 
+def _cmd_fit(args):
+    result = images.fit(args.image, args.output, args.format, args.logo, args.lock, args.allow_crop, args.focus_y)
+    if args.json:
+        return result, False
+    print(f'Saved {result["output"]} at {result["size"][0]}x{result["size"][1]}, cropped {result["cropped"]:.0%}.')
+    return None, False
+
+
+def _cmd_prompts(args):
+    items = images.plan_prompts(args.plan, args.mode)
+    if args.json:
+        return {'prompts': items}, False
+    print(images.prompts_markdown(read_json(args.plan), args.mode))
+    return None, False
+
+
+def _cmd_gate_confirm(args):
+    record = gate.confirm(args.plan)
+    if args.json:
+        return record, False
+    print(f'Recorded: the user stated the {record["plan"]} plan. {record["note"]}')
+    return None, False
+
+
+def _cmd_gate_check(args):
+    record = gate.check()
+    if args.json:
+        return record, False
+    print(f'Image generation allowed: the user stated the {record["plan"]} plan on {record["date"]}.')
+    return None, False
+
+
+def _cmd_doctor(args):
+    findings = gate.doctor()
+    failed = has_failures(findings)
+    if args.json:
+        return {'ok': not failed, 'findings': findings}, failed
+    _print_findings(findings, 'check')
+    return None, failed
+
+
 def parser():
     root = argparse.ArgumentParser(prog='brandking', description='Brandking Carousel: plan, render, audit and learn from Instagram carousels.')
     root.add_argument('--version', action='version', version=__version__)
@@ -167,10 +262,28 @@ def parser():
     p = command('render', _cmd_render, 'render, audit and package a delivery')
     p.add_argument('plan')
     p.add_argument('--output', required=True)
+    p.add_argument('--no-remember', action='store_true', help='do not save the brand after rendering')
     p = command('covers', _cmd_covers, 'render cover_options side by side')
     p.add_argument('plan')
     p.add_argument('--output', required=True)
     command('layouts', _cmd_layouts, 'list layouts and houses')
+    command('doctor', _cmd_doctor, 'check Codex sign-in and the stated ChatGPT plan')
+    p = command('fit', _cmd_fit, 'bring a generated image to an exact Instagram size')
+    p.add_argument('image')
+    p.add_argument('--output', required=True)
+    p.add_argument('--format', default='post', choices=sorted(images.SIZES))
+    p.add_argument('--logo', help='logo file to place in the footer band')
+    p.add_argument('--lock', default='center', choices=['center', 'left'])
+    p.add_argument('--allow-crop', action='store_true', help='allow a large crop, for text-free plates only')
+    p.add_argument('--focus-y', type=float, default=.5, help='which part survives the crop, 0 keeps the top')
+    p = command('prompts', _cmd_prompts, 'build image prompts from the copy in a plan')
+    p.add_argument('plan')
+    p.add_argument('--mode', default='plate', choices=['plate', 'full'])
+
+    door = sub.add_parser('gate', help='record the ChatGPT plan needed for image generation').add_subparsers(dest='action', required=True)
+    p = command('confirm', _cmd_gate_confirm, 'record the plan the user stated', door)
+    p.add_argument('--plan', required=True)
+    command('check', _cmd_gate_check, 'exit 1 unless a qualifying plan was stated', door)
 
     brand = sub.add_parser('brand', help='create and check brand kits').add_subparsers(dest='action', required=True)
     p = command('init', _cmd_brand_init, 'create a kit in private/brands', brand)
@@ -182,6 +295,19 @@ def parser():
     p.add_argument('--house', default='sovereign')
     p = command('check', _cmd_brand_check, 'measure how a palette behaves', brand)
     p.add_argument('path')
+    p = command('remember', _cmd_brand_remember, 'save a brand once; only given fields change', brand)
+    for field in ('slug', 'name', 'handle', 'primary', 'accent', 'dark', 'light', 'warm', 'logo', 'font', 'title-font',
+                  'font-name', 'title-font-name', 'visual-structure', 'website', 'sector', 'tone'):
+        p.add_argument(f'--{field}')
+    p.add_argument('--house', choices=sorted(HOUSES))
+    p.add_argument('--footer', choices=['split', 'center'])
+    p.add_argument('--banned-word', action='append')
+    p.add_argument('--reference', action='append', help='a reference image to keep with the brand')
+    p = command('recall', _cmd_brand_recall, 'show a saved brand; exit 1 when there is none', brand)
+    p.add_argument('slug', nargs='?')
+    command('list', _cmd_brand_list, 'list saved brands', brand)
+    p = command('forget', _cmd_brand_forget, 'delete a saved brand', brand)
+    p.add_argument('slug')
 
     run = sub.add_parser('run', help='track a carousel through its gates').add_subparsers(dest='action', required=True)
     p = command('new', _cmd_run_new, 'create a run folder', run)
